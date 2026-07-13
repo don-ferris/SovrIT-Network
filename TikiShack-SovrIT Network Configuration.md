@@ -1,9 +1,8 @@
 TikiShack-SovrIT Network Configuration
-# =======================================
+ 
 #   NETWORK  MANAGEMENT  DEVICES  (MGMT  VLAN  1)
-# =======================================
 
-# ~~~~~~~~~~~~    ROUTER / GATEWAY    ~~~~~~~~~~~~
+##    ROUTER / GATEWAY     
 ROUTER_GATEWAY:
     Make: TP-Link
     Model: ER707-M2
@@ -26,7 +25,7 @@ ROUTER_GATEWAY:
             Port 7: UNUSED
         SSID: N/A
 
-# ~~~~~~~~~~~~    SWITCH 1    ~~~~~~~~~~~~
+##    SWITCH 1     
 SWITCH1:
     Make: TP-Link
     Model: T1500G-10PS (TL-SG2210P)
@@ -50,7 +49,7 @@ SWITCH1:
             Port 8: UNUSED - Reserved for EAP720-2
         SSID: N/A
 
-# ~~~~~~~~~~~~    SWITCH 2    ~~~~~~~~~~~~
+##    SWITCH 2     
 SWITCH2:
     Make: TP-Link
     Model: TL-SG1024DE
@@ -60,7 +59,7 @@ SWITCH2:
         Connection: none
         SSID: N/A
 
-# ~~~~~~~~~~~~    SWITCH  3    ~~~~~~~~~~~~
+##    SWITCH  3     
 SWITCH3:
     Make: Reolink
     Model: RLA-PS1
@@ -69,7 +68,7 @@ SWITCH3:
         Connection: none
         SSID: N/A
 
-# ~~~~~~~~~~~~    SDN  CONTROLLER    ~~~~~~~~~~~~
+##    SDN  CONTROLLER     
 SDN_CONTROLLER:
     Make: TP-Link
     Model: OC200
@@ -86,7 +85,7 @@ SDN_CONTROLLER:
         Device/Port: Switch 1, port 2
         SSID: N/A
 
-# ~~~~~~~~~~~~    WAP  1    ~~~~~~~~~~~~
+##    WAP  1     
 WAP1:
     Make: TP-Link
     Model: EAP720(US)
@@ -101,7 +100,7 @@ WAP1:
         Device/Port: Switch 1, port 7
         SSID: N/A
 
-# ~~~~~~~~~~~~    WAP  2    ~~~~~~~~~~~~
+##    WAP  2     
 WAP2:
     Make: TP-Link
     Model: EAP720(US)
@@ -111,12 +110,12 @@ WAP2:
 
 
 
-# =======================================
+ 
 #                           SERVERS  (INFRA  VLAN  2)
-# =======================================
+ 
 #    Use 'lshw' or 'dmidecode' to get CPU/RAM info and 'lsblk -o NAME,MODEL,SERIAL,SIZE' to get disk info
 
-# ~~~~~~~~~~~~    STORAGE  NODE    ~~~~~~~~~~~~
+##    STORAGE  NODE     
 STORAGE_NODE:
     Hostname: BoraBora
     Descriptors:
@@ -154,7 +153,7 @@ STORAGE_NODE:
         (8 x 12TB drives, 6 drives in RAIDZ2 array, 2 hot spare drives)
         Runs Jellyfin in a (standalone/non-TrueNAS) Docker container
 
-# ~~~~~~~~~~~~     CORE  NODE    ~~~~~~~~~~~~
+##     CORE  NODE     
 CORE_NODE:
     Hostname: Fiji
     Make: HP
@@ -184,7 +183,7 @@ CORE_NODE:
     Notes: |
         SovrIT PTI Core Node
 
-# ~~~~~~~~~~~~    COMPUTE  (AI)  NODE    ~~~~~~~~~~~~
+##    COMPUTE  (AI)  NODE     
 COMPUTE_NODE:
     Hostname: KonTiki
     Make: Apple
@@ -212,7 +211,7 @@ COMPUTE_NODE:
         Device/Port: Switch 1, port 4
         SSID: N/A
 
-# ~~~~~~~~~~~~     ORCHESTRATION  NODE    ~~~~~~~~~~~~
+##     ORCHESTRATION  NODE     
 ORCHESTRATION_NODE:
     Hostname: HomeAssistant
     Make: Nabu Casa
@@ -236,7 +235,7 @@ ORCHESTRATION_NODE:
     Notes: |
         Provides a variety of smarthome and other orchestration services
         
-# ~~~~~~~~~~~~    DEV  NODE    ~~~~~~~~~~~~
+##    DEV  NODE     
 DEV_NODE:
     Hostname: Moorea
     Make: Dell
@@ -260,7 +259,7 @@ DEV_NODE:
         IP_Assignment: static
         Device/Port: Router, port 4
 
-# ~~~~~~~~~~~~    ADMIN  NODE    ~~~~~~~~~~~~
+##    ADMIN  NODE     
 ADMIN NODE:
     Hostname: Tahiti
     Make: Dell
@@ -278,24 +277,24 @@ ADMIN NODE:
         IP_Assignment: static
         Device/Port: Router, port 5
 
-# ~~~~~~~~~~~~    REMOTE  FAILOVER  NODE    ~~~~~~~~~~~~
+##    REMOTE  FAILOVER  NODE     
 REMOTE_FAILOVER_NODE:
     Hostname: RemoteFailover
     Notes: Placeholder for future configuration
 
-# ~~~~~~~~~~~~    REMOTE  TEST  NODE    ~~~~~~~~~~~~
+##    REMOTE  TEST  NODE     
 # REMOTE TEST NODE
 TestNode:
     Hostname: RemoteTest
     Notes: Placeholder for future configuration
 
 
-# =======================================
+ 
 #                    NETWORK  CONFIGURATION  (SOURCE  OF  TRUTH)
-# =======================================
+ 
 
 
-# ~~~~~~~~~~~~    SWITCH  PORT  CONFIGURATION    ~~~~~~~~~~~~
+##    SWITCH  PORT  CONFIGURATION     
 
 SWITCH1_PORT_CONFIGURATION:
 
@@ -386,7 +385,7 @@ SWITCH1_PORT_CONFIGURATION:
             Dev-Sandbox (99)
 
 
-# ~~~~~~~~~~~~    SSID  MAPPINGS    ~~~~~~~~~~~~
+##    SSID  MAPPINGS     
 
 WIRELESS_NETWORKS:
 
@@ -439,7 +438,7 @@ WIRELESS_NETWORKS:
         Purpose: Development and experimentation
 
 
-# ~~~~~~~~~~~~    VLAN  DEVICE  INVENTORY    ~~~~~~~~~~~~
+##    VLAN  DEVICE  INVENTORY     
 
 VLAN_DEVICE_INVENTORY:
 
@@ -487,9 +486,9 @@ VLAN_DEVICE_INVENTORY:
         Experimental devices
 
 
-# =======================================
+ 
 #                             NETWORK  DESIGN  DECISIONS
-# =======================================
+ 
 
 NETWORK_DESIGN_DECISIONS:
 
@@ -535,9 +534,9 @@ NETWORK_DESIGN_DECISIONS:
         • VLAN 1 will ultimately become an unused/default VLAN.
 
 
-# =======================================
+ 
 #                             NETWORK  DESIGN  STATUS
-# =======================================
+ 
 
 NETWORK_DESIGN_STATUS:
 
@@ -575,11 +574,11 @@ NETWORK_DESIGN_STATUS:
 
 
 
-# =======================================
+ 
 #                             DISREGARD BELOW HERE
-# =======================================
+ 
 
-# ~~~~~~~~~~~~    SERVER / MACHINE / NODE TEMPLATE      ~~~~~~~~~~~~
+##    SERVER / MACHINE / NODE TEMPLATE       
 TEMPLATE_NODE:
     Hostname: Template
     Descriptors:

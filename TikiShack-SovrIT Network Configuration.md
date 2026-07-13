@@ -3,7 +3,7 @@ TikiShack-SovrIT Network Configuration
 #   NETWORK  MANAGEMENT  DEVICES  (MGMT  VLAN  1)
 # =======================================
 
-# ~~~~~~~~~~~~~~    ROUTER / GATEWAY    ~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~    ROUTER / GATEWAY    ~~~~~~~~~~~~~
 ROUTER_GATEWAY:
     Make: TP-Link
     Model: ER707-M2

@@ -89,8 +89,9 @@ ROUTER_GATEWAY:
 ```yaml
 ROUTER_2-5G_Backup_WAN:
   Make: Cradlepoint
-  Model: W1850-5GB (S5A032A W-Series 5G Wideband Adapter Router)
-  Link: https://cradlepoint.ericsson.com/products/endpoints/w1850-series/
+```
+  Model: W1850-5GB (S5A032A W-Series 5G Wideband Adapter Router)](https://cradlepoint.ericsson.com/products/endpoints/w1850-series/)
+```yaml
   Revision: v1.3
   FirmwareVersion: 1.4.2 Build 20260509 Rel.32107
 

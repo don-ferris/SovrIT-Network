@@ -15,7 +15,7 @@
 
 - [Network Management Devices](#network-management-devices)
   - [Router / Gateway](#router--gateway)
-  - [Router 2 (5G Backup WAN)](#router2-5g-backup-wan)
+  - [Router 2 (5G Backup WAN)](#router-2-5g-backup-wan)
   - [Switch 1](#switch-1)
   - [Switch 2](#switch-2)
   - [Switch 3](#switch-3)
@@ -89,7 +89,8 @@ ROUTER_GATEWAY:
 ```yaml
 ROUTER_2-5G_Backup_WAN:
   Make: Cradlepoint
-  Model: [W1850-5GB (S5A032A W-Series 5G Wideband Adapter Router)](https://cradlepoint.ericsson.com/products/endpoints/w1850-series/)
+  Model: W1850-5GB (S5A032A W-Series 5G Wideband Adapter Router)
+  Link: https://cradlepoint.ericsson.com/products/endpoints/w1850-series/
   Revision: v1.3
   FirmwareVersion: 1.4.2 Build 20260509 Rel.32107
 

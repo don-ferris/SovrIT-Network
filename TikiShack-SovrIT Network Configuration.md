@@ -1,7 +1,5 @@
 # TikiShack / SovrIT Network Configuration
 
-**Project:** SovrIT PTI  
-**Site:** TikiShack, Playa Grande / Las Uvas, San Carlos, Panama Oeste, Panama  
 **Document Status:** Authoritative Technical Specification  
 **Last Updated:** 2026-09-28
 
@@ -9,7 +7,6 @@
 
 ## Table of Contents
 
-1. [Document Conventions](#document-conventions)
 2. [Network Entity Index](#network-entity-index)
 3. [VLAN Index](#vlan-index)
 4. [Network Management Devices](#network-management-devices)
@@ -47,49 +44,6 @@
 11. [Network Design Status](#network-design-status)
 12. [Guiding Principles](#guiding-principles)
 13. [Revision History](#revision-history)
-
----
-
-## Document Conventions
-
-<a name="document-conventions"></a>
-
-This document deliberately uses semantic Markdown rather than YAML.
-
-The objective is to make the network specification simultaneously useful to:
-
-- humans reading and maintaining the documentation;
-- GitHub's Markdown renderer and heading navigation;
-- future automation and tooling;
-- AI systems consuming the document as structured technical context.
-
-### Canonical Entities
-
-Network objects have canonical names. When a network object is referenced elsewhere in this document, the reference should link back to its canonical definition.
-
-Examples:
-
-- [`BoraBora`](#node-borabora)
-- [`Fiji`](#node-fiji)
-- [`KonTiki`](#node-kontiki)
-- [`Home Assistant`](#node-home-assistant)
-- [`VLAN 2 — INFRA`](#vlan-2--infra)
-- [`VLAN 22 — TikiShack`](#vlan-22--tikishack)
-- [`VLAN 66 — IoT`](#vlan-66--iot)
-
-### Manufacturer / Model References
-
-Where practical, a device model is linked directly to the manufacturer's official product or support page.
-
-This is intentional. The model number is the authoritative identifier; the external link provides a direct path to the manufacturer's documentation.
-
-### Navigation
-
-The manually maintained Table of Contents provides predictable navigation and preserves the intended document structure.
-
-GitHub's automatically generated heading outline remains available as a secondary navigation mechanism.
-
-Individual sections use a `↩ TOC` link to return to the Table of Contents.
 
 ---
 

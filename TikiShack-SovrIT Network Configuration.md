@@ -87,11 +87,10 @@ ROUTER_GATEWAY:
 ## Router 2 (5G Backup WAN)
 
 ```yaml
-ROUTER_2-5G_Backup_WAN:
+ROUTER_2:
   Make: Cradlepoint
-```
-  Model: W1850-5GB (S5A032A W-Series 5G Wideband Adapter Router)](https://cradlepoint.ericsson.com/products/endpoints/w1850-series/)
-```yaml
+  Model: W1850-5GB (S5A032A W-Series 5G Wideband Adapter Router)
+  Link: https://cradlepoint.ericsson.com/products/endpoints/w1850-series/
   Revision: v1.3
   FirmwareVersion: 1.4.2 Build 20260509 Rel.32107
 
@@ -109,8 +108,8 @@ ROUTER_2-5G_Backup_WAN:
     SSID: N/A
 
   PortMap:
-    Port 1 (WAN): ISP modem/router
-    Port 2 (WAN/LAN): UNUSED
+    Port 1 (LAN1): UNUSED
+    Port 2 (LAN2): UNUSED
     Port 3 (WAN/LAN): UNUSED
     Port 4 (WAN/LAN): Moorea (Development/Test Node)
     Port 5 (WAN/LAN): Tahiti (Administration Laptop)

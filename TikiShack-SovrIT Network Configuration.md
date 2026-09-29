@@ -39,7 +39,7 @@
 ---
 
 # Network Management Devices
-[top](#table-of-contents)
+[TOC](#table-of-contents)
 
 > **Management VLAN:** VLAN 1 (MGMT)
 
@@ -48,6 +48,7 @@ All network infrastructure devices reside on the Management VLAN unless otherwis
 ---
 
 ## Router / Gateway
+[TOC](#table-of-contents)
 
 ```yaml
 ROUTER_GATEWAY:
@@ -82,6 +83,7 @@ ROUTER_GATEWAY:
 ---
 
 ## Switch 1
+[TOC](#table-of-contents)
 
 ```yaml
 SWITCH1:
@@ -117,6 +119,7 @@ SWITCH1:
 ---
 
 ## Switch 2
+[TOC](#table-of-contents)
 
 ```yaml
 SWITCH2:
@@ -135,6 +138,7 @@ SWITCH2:
 ---
 
 ## Switch 3
+[TOC](#table-of-contents)
 
 ```yaml
 SWITCH3:
@@ -155,6 +159,7 @@ SWITCH3:
 ---
 
 ## Omada SDN Controller
+[TOC](#table-of-contents)
 
 ```yaml
 SDN_CONTROLLER:
@@ -182,6 +187,7 @@ SDN_CONTROLLER:
 ---
 
 ## Wireless Access Point 1
+[TOC](#table-of-contents)
 
 ```yaml
 WAP1:
@@ -207,6 +213,7 @@ WAP1:
 ---
 
 ## Wireless Access Point 2
+[TOC](#table-of-contents)
 
 ```yaml
 WAP2:
@@ -224,13 +231,14 @@ WAP2:
 ---
 
 # Infrastructure Nodes
+[TOC](#table-of-contents)
 
 > **Infrastructure VLAN:** VLAN 2 (INFRA)
 
 All infrastructure systems are connected via wired Ethernet and operate as
 access-port devices on VLAN 2 unless explicitly documented otherwise.
 
-## Storage Node (BoraBora)
+## Storage Node (BoraBora) [TOC](#table-of-contents)
 
 ```yaml
 STORAGE_NODE:

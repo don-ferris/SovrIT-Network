@@ -1,8 +1,8 @@
-# TikiShack – SovrIT Network Configuration
+# TikiShack-SovrIT Network Configuration
 
 > **Project:** SovrIT PTI (Personal/Private Technology Infrastructure)
 >
-> This document is the authoritative technical specification for the TikiShack network.
+> This document is the authoritative technical specification for the TikiShack/SovrIT network.
 > It documents the physical infrastructure, logical network topology, infrastructure
 > nodes, wireless configuration, and operational design decisions.
 >
@@ -340,27 +340,36 @@ COMPUTE_NODE:
 
   Hardware:
     Manufacturer: Apple
-    Model: MacBook
-    Status: Awaiting USB Ethernet Adapter
+    Model: MacBook Pro M1 Max (A2485)
+    CPU: Apple M1 Max (8 performance cores, 2 efficiency cores)
+    Memory: 32 GB
+    Serial Number (system): Y45W77NJJF
+    Hardware UUID: BBC391E5-5D31-5EA4-BC39-9BC64DA2F7B9
+    Provisioning UDID: 00006001-001A31913C04401E
 
   Operating_System:
-    Name: macOS
+    Name: macOS Sequoia (15.1.1 24B91)
+    System Firmware Version: 11881.41.5
+    OS Loader Version: 11881.41.5
 
   Network:
-    Planned_VLAN: 2-INFRA
-    Planned_IP: DHCP Reservation
+    VLAN: 2-INFRA
+    IP: 10.1.2.4
+    IP_Assignment: Static IP
     Connection: Wired Ethernet
     Device_Port: Switch 1 / Port 4
 
   Planned_Services:
-    - llama.cpp
+    - Ollama/LibreChat
+    - Hermes
     - Local LLMs
     - AI APIs
     - SovrIT Assistant backend
 
   Notes:
     - Permanent infrastructure appliance.
-    - Not a personal workstation.
+    - Used exclusively as a headless server in clamshell mode.
+    - NOT a personal workstation/not used as a laptop.
     - Intended to remain permanently installed.
     - Connected to AC power continuously.
     - Connected to KVM.
@@ -426,11 +435,11 @@ DEVELOPMENT_NODE:
     Model: 5070
 
   Status:
-    Current_State: Offline
+    Current_State: Offline/DEAD
     Reason: Hardware troubleshooting
 
   Notes:
-    - Temporarily removed from service.
+    - Removed from service.
     - Formerly connected directly to the router.
 ```
 

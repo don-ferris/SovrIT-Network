@@ -679,6 +679,7 @@ SWITCH1_PORT_CONFIGURATION:
 
 ---
 
+[TOC](#table-of-contents)
 ## Wireless Networks
 
 ```yaml
@@ -821,6 +822,9 @@ WIRELESS_NETWORKS:
       - Client isolation intentionally disabled.
 ```
 
+---
+
+[TOC](#table-of-contents)
 ## VLAN Device Inventory
 
 ```yaml
@@ -1025,6 +1029,7 @@ VLAN_DEVICE_INVENTORY:
 
 ---
 
+[TOC](#table-of-contents)
 # Network Design Decisions
 
 The following design decisions have been intentionally adopted and represent the
@@ -1045,6 +1050,7 @@ authoritative architectural direction for the SovrIT PTI network.
 
 ---
 
+[TOC](#table-of-contents)
 ## Layer 2 Design
 
 ### Infrastructure Hosts
@@ -1058,6 +1064,7 @@ authoritative architectural direction for the SovrIT PTI network.
 
 ---
 
+[TOC](#table-of-contents)
 ### Trunk Ports
 
 Only links that genuinely transport multiple VLANs are configured as trunks.
@@ -1072,6 +1079,7 @@ No other switch ports currently require trunking.
 
 ---
 
+[TOC](#table-of-contents)
 ### Access Ports
 
 Current Infrastructure access ports:
@@ -1086,6 +1094,7 @@ Each carries exactly one production VLAN.
 
 ---
 
+[TOC](#table-of-contents)
 ## Access Point Design
 
 Wireless access points carry only VLANs that actually have wireless SSIDs.
@@ -1103,6 +1112,7 @@ This follows the design principle:
 
 ---
 
+[TOC](#table-of-contents)
 ## Infrastructure Philosophy
 
 Infrastructure systems are intentionally separated from user networks.
@@ -1121,6 +1131,7 @@ Infrastructure remains physically wired whenever possible.
 
 ---
 
+[TOC](#table-of-contents)
 ## Wireless Philosophy
 
 Wireless exists for clients.
@@ -1134,12 +1145,18 @@ that SSID.
 
 Wireless is never used as a shortcut around VLAN segmentation.
 
+---
+
+[TOC](#table-of-contents)
 ## Security Architecture
 
 The PTI network is designed around a layered security model. VLANs provide
 administrative and broadcast-domain separation, while Gateway ACLs enforce
 explicit communication policy between security domains.
 
+---
+
+[TOC](#table-of-contents)
 ### Layer 2
 
 Responsibilities:
@@ -1153,6 +1170,7 @@ Layer 2 is **not** relied upon for authorization decisions.
 
 ---
 
+[TOC](#table-of-contents)
 ### Layer 3
 
 The ER707-M2 is the authoritative policy enforcement point.
@@ -1169,6 +1187,7 @@ Inter-VLAN communication is denied unless explicitly permitted.
 
 ---
 
+[TOC](#table-of-contents)
 ### Infrastructure
 
 Infrastructure systems are treated as service providers rather than trusted peers.
@@ -1183,6 +1202,7 @@ Infrastructure where operationally appropriate.
 
 ---
 
+[TOC](#table-of-contents)
 ### Management
 
 Administrative access is intentionally limited.
@@ -1201,6 +1221,7 @@ A dedicated Management VLAN will eventually replace VLAN 1.
 
 ---
 
+[TOC](#table-of-contents)
 ### Internet Access
 
 Every VLAN receives Internet access only as required by its purpose.
@@ -1216,6 +1237,7 @@ Examples:
 
 ---
 
+[TOC](#table-of-contents)
 ### VPN Philosophy
 
 Two trusted client VLANs exist.
@@ -1234,6 +1256,7 @@ Characteristics:
 
 ---
 
+[TOC](#table-of-contents)
 #### VLAN 23 — Panama
 
 Purpose:
@@ -1250,6 +1273,7 @@ The two VLANs are otherwise functionally equivalent.
 
 ---
 
+[TOC](#table-of-contents)
 ### Service Discovery
 
 Discovery protocols are intentionally treated as privileged services.
@@ -1268,6 +1292,7 @@ Future mDNS reflection will be implemented only where operationally justified.
 
 ---
 
+[TOC](#table-of-contents)
 ### Home Assistant
 
 Home Assistant occupies a unique architectural role.
@@ -1305,6 +1330,7 @@ segmentation.
 
 ---
 
+[TOC](#table-of-contents)
 ### Artificial Intelligence Platform
 
 KonTiki is designed as a permanent infrastructure appliance.
@@ -1327,6 +1353,7 @@ No multiple VLAN interfaces are currently anticipated.
 
 ---
 
+[TOC](#table-of-contents)
 ### Storage Philosophy
 
 BoraBora functions as centralized storage for the PTI.
@@ -1345,10 +1372,14 @@ placing the storage server directly on multiple VLANs.
 
 ---
 
+[TOC](#table-of-contents)
 # Future Architecture
 
 The following items are planned but not yet implemented.
 
+---
+
+[TOC](#table-of-contents)
 ## ACL Policy
 
 Status:
@@ -1365,6 +1396,7 @@ Design goals:
 
 ---
 
+[TOC](#table-of-contents)
 ## Firewall Rules
 
 Status:
@@ -1376,6 +1408,7 @@ requirements rather than convenience.
 
 ---
 
+[TOC](#table-of-contents)
 ## IPv6
 
 Status:
@@ -1387,6 +1420,7 @@ complete and stable.
 
 ---
 
+[TOC](#table-of-contents)
 ## High Availability
 
 Status:
@@ -1402,6 +1436,7 @@ Future work includes:
 
 ---
 
+[TOC](#table-of-contents)
 ## Additional Infrastructure
 
 Planned future services include, but are not limited to:
@@ -1417,6 +1452,9 @@ Planned future services include, but are not limited to:
 - Logging
 - Certificate management
 
+---
+
+[TOC](#table-of-contents)
 # Network Design Status
 
 | Area | Status | Notes |
@@ -1443,10 +1481,12 @@ Planned future services include, but are not limited to:
 
 ---
 
+[TOC](#table-of-contents)
 # Guiding Principles
 
 The following principles govern all future modifications to the TikiShack network.
 
+[TOC](#table-of-contents)
 ## Simplicity
 
 Prefer the simplest architecture that satisfies the operational requirements.
@@ -1455,6 +1495,7 @@ Complexity must always be justified.
 
 ---
 
+[TOC](#table-of-contents)
 ## Determinism
 
 Network behavior should be predictable.
@@ -1464,6 +1505,7 @@ should never depend on undocumented behavior or assumptions.
 
 ---
 
+[TOC](#table-of-contents)
 ## Least Privilege
 
 Every communication path must be explicitly justified.
@@ -1472,6 +1514,7 @@ Access is granted only when operationally necessary.
 
 ---
 
+[TOC](#table-of-contents)
 ## Separation of Responsibilities
 
 Each infrastructure component has a clearly defined responsibility.
@@ -1500,6 +1543,7 @@ Responsibilities should not overlap unnecessarily.
 
 ---
 
+[TOC](#table-of-contents)
 ## Wired-First Infrastructure
 
 Infrastructure services should use wired Ethernet whenever practical.
@@ -1508,6 +1552,7 @@ Wireless networking exists primarily for client devices.
 
 ---
 
+[TOC](#table-of-contents)
 ## Explicit Over Implicit
 
 Configuration should always be explicit.
@@ -1524,6 +1569,7 @@ configuration is available.
 
 ---
 
+[TOC](#table-of-contents)
 ## Documentation First
 
 The documentation is the authoritative design specification.
@@ -1542,6 +1588,7 @@ This ensures the documented architecture and operational network remain aligned.
 
 ---
 
+[TOC](#table-of-contents)
 ## Change Management
 
 Major architectural changes should:
@@ -1553,6 +1600,7 @@ Major architectural changes should:
 
 ---
 
+[TOC](#table-of-contents)
 ## Current Baseline
 
 This document represents the **Layer-2 baseline** for the SovrIT PTI network.
@@ -1572,6 +1620,7 @@ decision explicitly requires modification.
 
 ---
 
+[TOC](#table-of-contents)
 # Revision History
 
 | Version | Date | Description |

@@ -7,9 +7,9 @@
 
 ## Table of Contents
 
-2. [Network Entity Index](#network-entity-index)
-3. [VLAN Index](#vlan-index)
-4. [Network Management Devices](#network-management-devices)
+[Network Entity Index](#network-entity-index)
+[VLAN Index](#vlan-index)
+[Network Management Devices](#network-management-devices)
    - [Router / Gateway — ER707-M2](#router--gateway--er707-m2)
    - [Router 2 — W1850-5GB](#router-2--w1850-5gb)
    - [Switch 1 — T1500G-10PS](#switch-1--t1500g-10ps)

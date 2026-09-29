@@ -39,6 +39,7 @@
 ---
 
 # Network Management Devices
+[top](#table-of-contents)
 
 > **Management VLAN:** VLAN 1 (MGMT)
 

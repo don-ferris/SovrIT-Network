@@ -1,1670 +1,1854 @@
-# TikiShack-SovrIT Network Configuration
+# TikiShack / SovrIT Network Configuration
 
-> **Project:** SovrIT PTI (Personal/Private Technology Infrastructure)
->
-> This document is the authoritative technical specification for the TikiShack/SovrIT network.
-> It documents the physical infrastructure, logical network topology, infrastructure
-> nodes, wireless configuration, and operational design decisions.
->
-> This document is intended to serve as the primary source of truth for rebuilding,
-> maintaining, troubleshooting, securing, and extending the network.
+**Project:** SovrIT PTI  
+**Site:** TikiShack, Playa Grande / Las Uvas, San Carlos, Panama Oeste, Panama  
+**Document Status:** Authoritative Technical Specification  
+**Last Updated:** 2026-09-28
 
 ---
 
-# Table of Contents
+## Table of Contents
 
-- [Network Management Devices](#network-management-devices)
-  - [Router / Gateway](#router--gateway)
-  - [Router 2 (5G Backup WAN)](#router-2-5g-backup-wan)
-  - [Switch 1](#switch-1)
-  - [Switch 2](#switch-2)
-  - [Switch 3](#switch-3)
-  - [Omada SDN Controller](#omada-sdn-controller)
-  - [Wireless Access Point 1](#wireless-access-point-1)
-  - [Wireless Access Point 2](#wireless-access-point-2)
-- [Infrastructure Nodes](#infrastructure-nodes)
-  - [Storage Node (BoraBora)](#storage-node-borabora)
-  - [Core Node (Fiji)](#core-node-fiji)
-  - [Compute Node (KonTiki)](#compute-node-kontiki)
-  - [Orchestration Node](#orchestration-node-homeassistant)
-  - [Development Node (Moorea)](#development-node-moorea)
-  - [Administration Node (Tahiti)](#administration-node-tahiti)
-  - [Remote Failover Node](#remote-failover-node)
-- [Network Configuration](#network-configuration)
-  - [Switch Port Configuration](#switch-port-configuration)
-  - [Wireless Networks](#wireless-networks)
-  - [VLAN Device Inventory](#vlan-device-inventory)
-- [Network Design Decisions](#network-design-decisions)
-- [Network Design Status](#network-design-status)
+1. [Document Conventions](#document-conventions)
+2. [Network Entity Index](#network-entity-index)
+3. [VLAN Index](#vlan-index)
+4. [Network Management Devices](#network-management-devices)
+   - [Router / Gateway — ER707-M2](#router--gateway--er707-m2)
+   - [Router 2 — W1850-5GB](#router-2--w1850-5gb)
+   - [Switch 1 — T1500G-10PS](#switch-1--t1500g-10ps)
+   - [Switch 2 — TL-SG1024DE](#switch-2--tl-sg1024de)
+   - [Switch 3 — Reolink RLA-PS1](#switch-3--reolink-rla-ps1)
+   - [OC200](#oc200)
+   - [EAP720-1](#eap720-1)
+   - [EAP720-2](#eap720-2)
+5. [Infrastructure Nodes](#infrastructure-nodes)
+   - [BoraBora](#node-borabora)
+   - [Fiji](#node-fiji)
+   - [KonTiki](#node-kontiki)
+   - [Home Assistant](#node-home-assistant)
+   - [Moorea](#node-moorea)
+   - [Tahiti](#node-tahiti)
+   - [Remote Failover Node](#node-remote-failover)
+6. [VLANs](#vlans)
+   - [VLAN 1 — MGMT](#vlan-1--mgmt)
+   - [VLAN 2 — INFRA](#vlan-2--infra)
+   - [VLAN 3 — Printer](#vlan-3--printer)
+   - [VLAN 22 — TikiShack](#vlan-22--tikishack)
+   - [VLAN 23 — Panama](#vlan-23--panama)
+   - [VLAN 33 — Guest](#vlan-33--guest)
+   - [VLAN 44 — Sentry](#vlan-44--sentry)
+   - [VLAN 55 — Media](#vlan-55--media)
+   - [VLAN 66 — IoT](#vlan-66--iot)
+   - [VLAN 99 — Dev-Sandbox](#vlan-99--dev-sandbox)
+7. [Wireless Networks](#wireless-networks)
+8. [Physical Connectivity](#physical-connectivity)
+9. [Logical Network Architecture](#logical-network-architecture)
+10. [Future Architecture](#future-architecture)
+11. [Network Design Status](#network-design-status)
+12. [Guiding Principles](#guiding-principles)
+13. [Revision History](#revision-history)
 
 ---
 
-[TOC](#table-of-contents)
+## Document Conventions
+
+<a name="document-conventions"></a>
+
+This document deliberately uses semantic Markdown rather than YAML.
+
+The objective is to make the network specification simultaneously useful to:
+
+- humans reading and maintaining the documentation;
+- GitHub's Markdown renderer and heading navigation;
+- future automation and tooling;
+- AI systems consuming the document as structured technical context.
+
+### Canonical Entities
+
+Network objects have canonical names. When a network object is referenced elsewhere in this document, the reference should link back to its canonical definition.
+
+Examples:
+
+- [`BoraBora`](#node-borabora)
+- [`Fiji`](#node-fiji)
+- [`KonTiki`](#node-kontiki)
+- [`Home Assistant`](#node-home-assistant)
+- [`VLAN 2 — INFRA`](#vlan-2--infra)
+- [`VLAN 22 — TikiShack`](#vlan-22--tikishack)
+- [`VLAN 66 — IoT`](#vlan-66--iot)
+
+### Manufacturer / Model References
+
+Where practical, a device model is linked directly to the manufacturer's official product or support page.
+
+This is intentional. The model number is the authoritative identifier; the external link provides a direct path to the manufacturer's documentation.
+
+### Navigation
+
+The manually maintained Table of Contents provides predictable navigation and preserves the intended document structure.
+
+GitHub's automatically generated heading outline remains available as a secondary navigation mechanism.
+
+Individual sections use a `↩ TOC` link to return to the Table of Contents.
+
+---
+
+## Network Entity Index
+
+<a name="network-entity-index"></a>
+
+The following index provides a compact map of the principal entities in the network.
+
+### Network Management
+
+| Entity | Type | Primary Address | VLAN | Physical Location |
+|---|---|---:|---:|---|
+| [`ER707-M2`](#router--gateway--er707-m2) | Router / Gateway | `10.1.1.1` | [`VLAN 1`](#vlan-1--mgmt) | TikiShack |
+| [`W1850-5GB`](#router-2--w1850-5gb) | Cellular Router | `10.1.1.1`* | [`VLAN 1`](#vlan-1--mgmt) | TikiShack |
+| [`T1500G-10PS`](#switch-1--t1500g-10ps) | Managed PoE Switch | `10.1.1.2` | [`VLAN 1`](#vlan-1--mgmt) | TikiShack |
+| [`TL-SG1024DE`](#switch-2--tl-sg1024de) | Managed Switch | — | [`VLAN 1`](#vlan-1--mgmt) | TikiShack |
+| [`RLA-PS1`](#switch-3--reolink-rla-ps1) | PoE Switch | — | [`VLAN 1`](#vlan-1--mgmt) | TikiShack |
+| [`OC200`](#oc200) | Omada Controller | `10.1.1.5` | [`VLAN 1`](#vlan-1--mgmt) | TikiShack |
+| [`EAP720-1`](#eap720-1) | Wireless AP | `10.1.1.8` | [`VLAN 1`](#vlan-1--mgmt) | TikiShack |
+| [`EAP720-2`](#eap720-2) | Wireless AP | Reserved | [`VLAN 1`](#vlan-1--mgmt) | TikiShack |
+
+\* The W1850-5GB entry requires verification; see its device section.
+
+### Infrastructure Nodes
+
+| Entity | Hardware | Operating System | Address | VLAN |
+|---|---|---|---:|---:|
+| [`BoraBora`](#node-borabora) | Intel NUC7i5BNH | TrueNAS SCALE | `10.1.2.2` | [`VLAN 2`](#vlan-2--infra) |
+| [`Fiji`](#node-fiji) | HP t655 | Ubuntu Server | `10.1.2.3` | [`VLAN 2`](#vlan-2--infra) |
+| [`KonTiki`](#node-kontiki) | MacBook Pro M1 Max | macOS | `10.1.2.4` | [`VLAN 2`](#vlan-2--infra) |
+| [`Home Assistant`](#node-home-assistant) | Home Assistant Green | Home Assistant OS | — | [`VLAN 2`](#vlan-2--infra) |
+| [`Moorea`](#node-moorea) | Dell Wyse 5070 | — | — | — |
+| [`Tahiti`](#node-tahiti) | Lenovo laptop | Linux Mint | `10.1.1.88` wired | [`VLAN 1`](#vlan-1--mgmt) |
+| [`Remote Failover Node`](#node-remote-failover) | Future | TBD | TBD | TBD |
+
+### VLANs
+
+| VLAN | Name | Purpose |
+|---:|---|---|
+| [`1`](#vlan-1--mgmt) | MGMT | Network management |
+| [`2`](#vlan-2--infra) | INFRA | Servers and infrastructure |
+| [`3`](#vlan-3--printer) | Printer | Printer devices |
+| [`22`](#vlan-22--tikishack) | TikiShack | Primary trusted wireless network |
+| [`23`](#vlan-23--panama) | Panama | Direct-WAN wireless network |
+| [`33`](#vlan-33--guest) | Guest | Guest wireless |
+| [`44`](#vlan-44--sentry) | Sentry | Security / observation devices |
+| [`55`](#vlan-55--media) | Media | Media devices |
+| [`66`](#vlan-66--iot) | IoT | IoT devices |
+| [`99`](#vlan-99--dev-sandbox) | Dev-Sandbox | Development / experimentation |
+
+---
+
+## VLAN Index
+
+<a name="vlan-index"></a>
+
+| VLAN | Name | Function | Primary Security Role |
+|---:|---|---|---|
+| [`1`](#vlan-1--mgmt) | MGMT | Network management | Administrative |
+| [`2`](#vlan-2--infra) | INFRA | Core infrastructure | Trusted infrastructure |
+| [`3`](#vlan-3--printer) | Printer | Printers | Restricted peripheral |
+| [`22`](#vlan-22--tikishack) | TikiShack | Trusted clients | Primary user network |
+| [`23`](#vlan-23--panama) | Panama | Direct-WAN clients | Alternate client path |
+| [`33`](#vlan-33--guest) | Guest | Guest access | Untrusted |
+| [`44`](#vlan-44--sentry) | Sentry | Security devices | Restricted observation |
+| [`55`](#vlan-55--media) | Media | Media infrastructure | Restricted service network |
+| [`66`](#vlan-66--iot) | IoT | IoT devices | Restricted devices |
+| [`99`](#vlan-99--dev-sandbox) | Dev-Sandbox | Development | Isolated experimentation |
+
+---
+
 # Network Management Devices
 
-> **Management VLAN:** VLAN 1 (MGMT)
+<a name="network-management-devices"></a>
 
-All network infrastructure devices reside on the Management VLAN unless otherwise noted.
-
----
-
-[TOC](#table-of-contents)
-## Router / Gateway
-
-```yaml
-ROUTER_GATEWAY:
-  Make: TP-Link
-  Model: ER707-M2
-  Revision: v1.3
-  FirmwareVersion: 1.4.2 Build 20260509 Rel.32107
-
-  Description: >
-    Primary gateway, firewall, DHCP server,
-    VLAN router and VPN endpoint.
-
-  Network:
-    VLAN: 1-MGMT
-    IP: 10.1.1.1
-    IP_Assignment: Static
-    MAC_ID: AC-A7-F1-D6-57-A6
-    Connection: 802.3 (Ethernet)
-    Cable_Color: White (Flat)
-    SSID: N/A
-
-  PortMap:
-    Port 1 (WAN): ISP modem/router
-    Port 2 (WAN/LAN): UNUSED
-    Port 3 (WAN/LAN): UNUSED
-    Port 4 (WAN/LAN): Moorea (Development/Test Node)
-    Port 5 (WAN/LAN): Tahiti (Administration Laptop)
-    Port 6 (WAN/LAN): Switch 1
-    Port 7 (WAN/LAN): UNUSED
-```
+Network management devices provide routing, switching, wireless management, and network control.
 
 ---
 
-[TOC](#table-of-contents)
-## Router 2 (5G Backup WAN)
+## Router / Gateway — ER707-M2
 
-```yaml
-ROUTER_2:
-  Make: Cradlepoint
-  Model: W1850-5GB (S5A032A W-Series 5G Wideband Adapter Router)
-  Link: https://cradlepoint.ericsson.com/products/endpoints/w1850-series/
-  Revision: v1.3
-  FirmwareVersion: 1.4.2 Build 20260509 Rel.32107
+<a name="router--gateway--er707-m2"></a>
 
-  Description: >
-    Primary gateway, firewall, DHCP server,
-    VLAN router and VPN endpoint.
+[↩ TOC](#table-of-contents)
 
-  Network:
-    VLAN: 1-MGMT
-    IP: 10.1.1.1
-    IP_Assignment: Static
-    MAC_ID: AC-A7-F1-D6-57-A6
-    Connection: 802.3 (Ethernet)
-    Cable_Color: White (Flat)
-    SSID: N/A
+**Manufacturer:** TP-Link  
+**Model:** [ER707-M2](https://www.tp-link.com/us/business-networking/omada-router/er707-m2/)  
+**Role:** Primary router / gateway  
+**Management VLAN:** [`VLAN 1 — MGMT`](#vlan-1--mgmt)
 
-  PortMap:
-    Port 1 (LAN1): UNUSED
-    Port 2 (LAN2): UNUSED
-    Port 3 (WAN/LAN): UNUSED
-    Port 4 (WAN/LAN): Moorea (Development/Test Node)
-    Port 5 (WAN/LAN): Tahiti (Administration Laptop)
-    Port 6 (WAN/LAN): Switch 1
-    Port 7 (WAN/LAN): UNUSED
-```
+### Identity
 
----
+| Property | Value |
+|---|---|
+| Hostname | `ER707-M2` |
+| IP Address | `10.1.1.1` |
+| MAC Address | `AC-A7-F1-D6-57-A6` |
+| Firmware | `1.4.2 Build 20260509 Rel.32107` |
+| Platform | TP-Link Omada |
 
-[TOC](#table-of-contents)
-## Switch 1
+### Network Role
 
-```yaml
-SWITCH1:
-  Make: TP-Link
-  Model: T1500G-10PS (TL-SG2210P)
-  Revision: v2.8
-  FirmwareVersion: 2.0.6 Build 20200805 Rel.57865
+The ER707-M2 is the primary Layer-3 gateway for the TikiShack/SovrIT network.
 
-  Description: >
-    Primary managed PoE switch providing
-    wired connectivity and power for the
-    OC200 controller and EAP720 access point.
+It provides:
 
-  Network:
-    VLAN: 1-MGMT
-    IP: 10.1.1.2
-    IP_Assignment: Static
-    MAC_ID: 68-FF-7B-F9-94-2D
-    Connection: 802.3 (Ethernet)
-    SSID: N/A
+- inter-VLAN routing;
+- firewall enforcement;
+- DHCP services as configured;
+- WAN connectivity;
+- VLAN trunk termination;
+- VPN functionality as configured;
+- network-level policy enforcement.
 
-  PortMap:
-    Port 1: ER707-M2 Gateway
-    Port 2: OC200 Controller (PoE)
-    Port 3: BoraBora
-    Port 4: Reserved for KonTiki
-    Port 5: Fiji
-    Port 6: Home Assistant Green
-    Port 7: EAP720-1 (PoE)
-    Port 8: Reserved for EAP720-2 (PoE)
-```
+### VLANs
+
+The gateway carries the following VLANs:
+
+- [`VLAN 1 — MGMT`](#vlan-1--mgmt)
+- [`VLAN 2 — INFRA`](#vlan-2--infra)
+- [`VLAN 3 — Printer`](#vlan-3--printer)
+- [`VLAN 22 — TikiShack`](#vlan-22--tikishack)
+- [`VLAN 23 — Panama`](#vlan-23--panama)
+- [`VLAN 33 — Guest`](#vlan-33--guest)
+- [`VLAN 44 — Sentry`](#vlan-44--sentry)
+- [`VLAN 55 — Media`](#vlan-55--media)
+- [`VLAN 66 — IoT`](#vlan-66--iot)
+- [`VLAN 99 — Dev-Sandbox`](#vlan-99--dev-sandbox)
+
+### Design Intent
+
+The router is the enforcement point for the network's segmentation model.
+
+The architecture intentionally places policy at the Layer-3 boundary rather than relying on implicit trust between devices simply because they share a physical switching fabric.
 
 ---
 
-[TOC](#table-of-contents)
-## Switch 2
+## Router 2 — W1850-5GB
 
-```yaml
-SWITCH2:
-  Make: TP-Link
-  Model: TL-SG1024DE
+<a name="router-2--w1850-5gb"></a>
 
-  Description: >
-    Reserved for future deployment.
+[↩ TOC](#table-of-contents)
 
-  Network:
-    VLAN: 1-MGMT
-    Connection: None
-    SSID: N/A
-```
+**Manufacturer:** Cradlepoint / Ericsson  
+**Model:** [W1850-5GB](https://cradlepoint.ericsson.com/products/endpoints/w1850-series/)  
+**Role:** Cellular / secondary WAN capability
 
----
+### Identity
 
-[TOC](#table-of-contents)
-## Switch 3
+| Property | Value |
+|---|---|
+| Hostname | `W1850-5GB` |
+| IP Address | `10.1.1.1`* |
+| MAC Address | `AC-A7-F1-D6-57-A6`* |
+| VLAN | [`VLAN 1 — MGMT`](#vlan-1--mgmt) |
 
-```yaml
-SWITCH3:
-  Make: Reolink
-  Model: RLA-PS1
+### Verification Required
 
-  Description: >
-    Reserved for future deployment.
-    Intended to provide dedicated PoE
-    connectivity for security cameras
-    and related surveillance equipment.
+The currently documented IP address, MAC address, and port configuration duplicate the [`ER707-M2`](#router--gateway--er707-m2).
 
-  Network:
-    Connection: None
-    SSID: N/A
-```
+This is almost certainly an inventory/configuration inconsistency rather than an intentional duplicate network identity.
+
+**Do not treat the values above as authoritative until the physical W1850-5GB installation is verified.**
+
+The device is intended to provide a secondary/failover WAN path.
 
 ---
 
-[TOC](#table-of-contents)
-## Omada SDN Controller
+## Switch 1 — T1500G-10PS
 
-```yaml
-SDN_CONTROLLER:
-  Make: TP-Link
-  Model: OC200
-  Revision: v1.0
-  FirmwareVersion: 1.40.18 Build 20260506 Rel.74003
+<a name="switch-1--t1500g-10ps"></a>
 
-  Description: >
-    Dedicated Omada SDN Controller
-    replacing the previous Docker-based
-    controller.
+[↩ TOC](#table-of-contents)
 
-  Network:
-    VLAN: 1-MGMT
-    IP: 10.1.1.5
-    IP_Assignment: Static
-    MAC_ID: B0-BE-76-C6-3A-FB
-    Connection: 802.3 (Ethernet)
-    Cable_Color: Blue
-    Device_Port: Switch 1 / Port 2
-    SSID: N/A
-```
+**Manufacturer:** TP-Link  
+**Model:** [T1500G-10PS / TL-SG2210P](https://www.tp-link.com/us/business-networking/omada-switch-smart-switch/t1500g-10ps/)  
+**Role:** Primary managed PoE switch
 
----
+### Identity
 
-[TOC](#table-of-contents)
-## Wireless Access Point 1
+| Property | Value |
+|---|---|
+| Hostname | `Switch 1` |
+| Model | `T1500G-10PS / TL-SG2210P` |
+| IP Address | `10.1.1.2` |
+| MAC Address | `68-FF-7B-F9-94-2D` |
+| Management VLAN | [`VLAN 1`](#vlan-1--mgmt) |
 
-```yaml
-WAP1:
-  Make: TP-Link
-  Model: EAP720 (US)
-  Revision: v1.0
-  FirmwareVersion: 1.1.4 Build 20251224 Rel.62114
+### Role
 
-  Description: >
-    Primary wireless access point.
+Switch 1 is the principal access switch for the network.
 
-  Network:
-    VLAN: 1-MGMT
-    IP: 10.1.1.8
-    IP_Assignment: Static
-    MAC_ID: 10-5A-95-2F-66-B1
-    Connection: 802.3 (Ethernet)
-    Cable_Color: Yellow
-    Device_Port: Switch 1 / Port 7
-    SSID: N/A
-```
+It provides:
+
+- PoE;
+- VLAN-aware Layer-2 switching;
+- the primary connection to the gateway;
+- connections to core infrastructure;
+- connections to wireless access points.
+
+### Port Map
+
+| Port | Connected Device | Mode | Native / Untagged VLAN | Tagged VLANs |
+|---:|---|---|---:|---|
+| 1 | [`ER707-M2`](#router--gateway--er707-m2) | Trunk | `1` | `2,3,22,23,33,44,55,66,99` |
+| 2 | [`OC200`](#oc200) | Access | `1` | — |
+| 3 | [`BoraBora`](#node-borabora) | Access | `2` | — |
+| 4 | [`KonTiki`](#node-kontiki) | Access | `2` | — |
+| 5 | [`Fiji`](#node-fiji) | Access | `2` | — |
+| 6 | [`Home Assistant`](#node-home-assistant) | Access | `2` | — |
+| 7 | [`EAP720-1`](#eap720-1) | Trunk | `1` | Wireless VLANs |
+| 8 | [`EAP720-2`](#eap720-2) | Trunk | `1` | Wireless VLANs |
 
 ---
 
-[TOC](#table-of-contents)
-## Wireless Access Point 2
+## Switch 2 — TL-SG1024DE
 
-```yaml
-WAP2:
-  Make: TP-Link
-  Model: EAP720 (US)
+<a name="switch-2--tl-sg1024de"></a>
 
-  Description: >
-    Reserved for future deployment.
+[↩ TOC](#table-of-contents)
 
-  Network:
-    Connection: None
-    SSID: N/A
-```
+**Manufacturer:** TP-Link  
+**Model:** [TL-SG1024DE](https://www.tp-link.com/us/business-networking/easy-smart-switch/tl-sg1024de/)  
+**Role:** Secondary managed switch
+
+### Identity
+
+| Property | Value |
+|---|---|
+| Hostname | `Switch 2` |
+| Model | `TL-SG1024DE` |
+| Management VLAN | [`VLAN 1`](#vlan-1--mgmt) |
+
+### Role
+
+Switch 2 provides additional wired Ethernet capacity.
+
+Its configuration should follow the same VLAN design principles as [`Switch 1`](#switch-1--t1500g-10ps):
+
+- explicit access VLANs;
+- explicit trunk VLANs;
+- management on [`VLAN 1`](#vlan-1--mgmt);
+- no implicit cross-VLAN trust.
 
 ---
 
-[TOC](#table-of-contents)
+## Switch 3 — Reolink RLA-PS1
+
+<a name="switch-3--reolink-rla-ps1"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Manufacturer:** Reolink  
+**Model:** [RLA-PS1](https://reolink.com/product/rla-ps1/)  
+**Role:** PoE switch for security infrastructure
+
+### Identity
+
+| Property | Value |
+|---|---|
+| Hostname | `Switch 3` |
+| Model | `RLA-PS1` |
+| Management VLAN | [`VLAN 1`](#vlan-1--mgmt) |
+
+### Role
+
+Switch 3 is intended primarily for Reolink/security infrastructure.
+
+Security-oriented devices should ultimately reside on [`VLAN 44 — Sentry`](#vlan-44--sentry) where practical.
+
+---
+
+## OC200
+
+<a name="oc200"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Manufacturer:** TP-Link  
+**Model:** [OC200 Omada Hardware Controller](https://www.tp-link.com/us/business-networking/omada-controller-hardware/oc200/)  
+**Role:** Omada Controller
+
+### Identity
+
+| Property | Value |
+|---|---|
+| Hostname | `OC200` |
+| IP Address | `10.1.1.5` |
+| MAC Address | `B0-BE-76-C6-3A-FB` |
+| VLAN | [`VLAN 1 — MGMT`](#vlan-1--mgmt) |
+| Connected To | [`Switch 1`](#switch-1--t1500g-10ps), Port 2 |
+
+### Role
+
+The OC200 provides centralized management for the Omada network infrastructure.
+
+It is deliberately located on the management VLAN rather than a user or IoT VLAN.
+
+---
+
+## EAP720-1
+
+<a name="eap720-1"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Manufacturer:** TP-Link  
+**Model:** EAP720  
+**Role:** Wireless access point
+
+### Identity
+
+| Property | Value |
+|---|---|
+| Hostname | `EAP720-1` |
+| IP Address | `10.1.1.8` |
+| MAC Address | `10-5A-95-2F-66-B1` |
+| Management VLAN | [`VLAN 1`](#vlan-1--mgmt) |
+| Connected To | [`Switch 1`](#switch-1--t1500g-10ps), Port 7 |
+
+### Switch Port
+
+Port 7 is configured as a trunk:
+
+- Native / untagged VLAN: [`VLAN 1 — MGMT`](#vlan-1--mgmt)
+- Tagged VLANs: wireless client VLANs
+
+The access point therefore uses the management VLAN for its own management traffic while carrying wireless client VLANs as tagged traffic.
+
+---
+
+## EAP720-2
+
+<a name="eap720-2"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Manufacturer:** TP-Link  
+**Model:** EAP720  
+**Role:** Reserved / future wireless access point
+
+### Status
+
+EAP720-2 is reserved for future deployment.
+
+The intended switch configuration is equivalent to [`EAP720-1`](#eap720-1):
+
+- Native VLAN: [`VLAN 1 — MGMT`](#vlan-1--mgmt)
+- Tagged wireless VLANs
+- Connected to [`Switch 1`](#switch-1--t1500g-10ps), Port 8
+
+---
+
 # Infrastructure Nodes
 
-> **Infrastructure VLAN:** VLAN 2 (INFRA)
+<a name="infrastructure-nodes"></a>
 
-All infrastructure systems are connected via wired Ethernet and operate as
-access-port devices on VLAN 2 unless explicitly documented otherwise.
-
-## Storage Node (BoraBora)
-[TOC](#table-of-contents)
-
-```yaml
-STORAGE_NODE:
-  Hostname: BoraBora
-
-  Role:
-    - Primary NAS
-    - Media Storage
-    - Backup Repository
-    - Infrastructure Storage
-    - Shared Storage
-    - Migration Support
-
-  Hardware:
-    Manufacturer: Intel
-    Model: NUC7i5BNH
-    CPU: Intel Core i5-7260U
-    Memory: 32 GB
-    Boot_Device: SSD
-    Data_Storage: Multi-drive storage pool
-
-  Operating_System:
-    Name: TrueNAS SCALE
-    Version: 25.10
-
-  Network:
-    VLAN: 2-INFRA
-    IP: 10.1.2.2
-    IP_Assignment: DHCP Reservation
-    Connection: 802.3 (Ethernet)
-    Device_Port: Switch 1 / Port 3
-
-  Services:
-    - SMB
-    - NFS
-    - Kopia Repository
-    - Docker
-    - Media Storage
-
-  Notes:
-    - Primary storage platform for the PTI.
-    - Intended to remain an Infrastructure host.
-    - Does not trunk multiple VLANs.
-    - Access from other VLANs is controlled exclusively through routing and ACLs.
-```
+Infrastructure nodes are the systems that provide computing, storage, orchestration, services, development environments, and other foundational capabilities to the network.
 
 ---
 
-[TOC](#table-of-contents)
-## Core Node (Fiji)
+## BoraBora
 
-```yaml
-CORE_NODE:
-  Hostname: Fiji
+<a name="node-borabora"></a>
 
-  Role:
-    - Primary Infrastructure Server
-    - Container Host
-    - Infrastructure Services
-    - Future Core Platform
+[↩ TOC](#table-of-contents)
 
-  Hardware:
-    Manufacturer: HP
-    Model: t655
-    CPU: AMD Ryzen Embedded
-    Memory: 32 GB
+**Hardware:** Intel NUC7i5BNH  
+**Processor:** Intel Core i5-7260U  
+**Memory:** 32 GB  
+**Operating System:** TrueNAS SCALE 25.10  
+**IP Address:** `10.1.2.2`  
+**VLAN:** [`VLAN 2 — INFRA`](#vlan-2--infra)  
+**Switch:** [`Switch 1`](#switch-1--t1500g-10ps), Port 3
 
-  Operating_System:
-    Name: Ubuntu Server
-    Version: 22.04.5 LTS
+### Identity
 
-  Network:
-    VLAN: 2-INFRA
-    IP: 10.1.2.3
-    IP_Assignment: DHCP Reservation
-    Connection: 802.3 (Ethernet)
-    Device_Port: Switch 1 / Port 5
+| Property | Value |
+|---|---|
+| Hostname | `BoraBora` |
+| Hardware | Intel NUC7i5BNH |
+| CPU | Intel Core i5-7260U |
+| RAM | 32 GB |
+| OS | TrueNAS SCALE 25.10 |
+| IP | `10.1.2.2` |
+| VLAN | `2` |
+| Switch Port | Switch 1 / Port 3 |
 
-  Planned_Services:
-    - AdGuard Home
-    - Unbound
-    - CrowdSec
-    - Step-CA
-    - NetBird
-    - Docker
-    - Reverse Proxy
-    - Infrastructure Services
+### Role
 
-  Notes:
-    - Currently operates as an Infrastructure access-port host.
-    - Single Ethernet interface.
-    - No tagged VLANs.
-    - Additional services will be exposed to other VLANs through router ACLs.
-```
+BoraBora is the primary network storage server.
+
+Its role includes storage and media infrastructure and may expand to host additional services where appropriate.
+
+### Network Placement
+
+BoraBora is intentionally placed on [`VLAN 2 — INFRA`](#vlan-2--infra).
+
+This provides a clear separation between infrastructure services and end-user/client networks.
 
 ---
 
-[TOC](#table-of-contents)
-## Compute Node (KonTiki)
+## Fiji
 
-```yaml
-COMPUTE_NODE:
-  Hostname: KonTiki
+<a name="node-fiji"></a>
 
-  Role:
-    - Local LLM Server
-    - AI Inference
-    - GPU Compute
-    - Experimental AI Platform
+[↩ TOC](#table-of-contents)
 
-  Hardware:
-    Manufacturer: Apple
-    Model: MacBook Pro M1 Max (A2485)
-    CPU: Apple M1 Max (8 performance cores, 2 efficiency cores)
-    Memory: 32 GB
-    Serial Number (system): Y45W77NJJF
-    Hardware UUID: BBC391E5-5D31-5EA4-BC39-9BC64DA2F7B9
-    Provisioning UDID: 00006001-001A31913C04401E
+**Hardware:** HP t655  
+**Processor:** AMD Ryzen Embedded  
+**Memory:** 32 GB  
+**Operating System:** Ubuntu Server 22.04.5 LTS  
+**IP Address:** `10.1.2.3`  
+**VLAN:** [`VLAN 2 — INFRA`](#vlan-2--infra)  
+**Switch:** [`Switch 1`](#switch-1--t1500g-10ps), Port 5
 
-  Operating_System:
-    Name: macOS Sequoia (15.1.1 24B91)
-    System Firmware Version: 11881.41.5
-    OS Loader Version: 11881.41.5
+### Identity
 
-  Network:
-    VLAN: 2-INFRA
-    IP: 10.1.2.4
-    IP_Assignment: Static IP
-    Connection: Wired Ethernet
-    Device_Port: Switch 1 / Port 4
+| Property | Value |
+|---|---|
+| Hostname | `Fiji` |
+| Hardware | HP t655 |
+| CPU | AMD Ryzen Embedded |
+| RAM | 32 GB |
+| OS | Ubuntu Server 22.04.5 LTS |
+| IP | `10.1.2.3` |
+| VLAN | `2` |
+| Switch Port | Switch 1 / Port 5 |
 
-  Planned_Services:
-    - Ollama/LibreChat
-    - Hermes
-    - Local LLMs
-    - AI APIs
-    - SovrIT Assistant backend
+### Role
 
-  Notes:
-    - Permanent infrastructure appliance.
-    - Used exclusively as a headless server in clamshell mode.
-    - NOT a personal workstation/not used as a laptop.
-    - Intended to remain permanently installed.
-    - Connected to AC power continuously.
-    - Connected to KVM.
-    - Expected to operate as an Infrastructure access-port host.
-    - Multiple VLAN interfaces are not presently anticipated.
-    - Client access from other VLANs will be governed through ACLs.
-```
+Fiji is an infrastructure compute node.
+
+It provides a general-purpose Linux environment for server workloads that do not belong on the storage platform.
 
 ---
 
-[TOC](#table-of-contents)
-## Orchestration Node (HomeAssistant)
+## KonTiki
 
-```yaml
-ORCHESTRATION_NODE:
-  Hostname: HomeAssistant
+<a name="node-kontiki"></a>
 
-  Role:
-    - Home Automation
-    - Device Orchestration
-    - Automation Engine
+[↩ TOC](#table-of-contents)
 
-  Hardware:
-    Manufacturer: Home Assistant
-    Model: Home Assistant Green
+**Hardware:** Apple MacBook Pro M1 Max, A2485  
+**Memory:** 32 GB  
+**Operating System:** macOS Sequoia 15.1.1 (24B91)  
+**IP Address:** `10.1.2.4`  
+**VLAN:** [`VLAN 2 — INFRA`](#vlan-2--infra)  
+**Switch:** [`Switch 1`](#switch-1--t1500g-10ps), Port 4
 
-  Operating_System:
-    Name: Home Assistant OS
+### Identity
 
-  Network:
-    Current_VLAN: 2-INFRA
-    Current_IP: DHCP Reservation
-    Connection: Wired Ethernet
-    Device_Port: Switch 1 / Port 6
+| Property | Value |
+|---|---|
+| Hostname | `KonTiki` |
+| Hardware | Apple MacBook Pro M1 Max |
+| Model | A2485 |
+| RAM | 32 GB |
+| OS | macOS Sequoia 15.1.1 |
+| OS Build | `24B91` |
+| IP | `10.1.2.4` |
+| VLAN | `2` |
+| Switch Port | Switch 1 / Port 4 |
 
-  Planned_Expansion:
-    Secondary_USB_Ethernet:
-      VLAN: 66-IoT
-      Purpose: Native communication with IoT devices
+### Role
 
-  Notes:
-    - Initially deployed solely on the Infrastructure VLAN.
-    - Planned dual-homed architecture:
-        - Primary interface: Infrastructure management.
-        - Secondary interface: Native IoT communication.
-    - Intended to become the application-layer coordinator between Infrastructure and IoT.
-```
+KonTiki is the local AI and development compute node.
 
----
+It is also used as a general-purpose infrastructure workstation/server.
 
-[TOC](#table-of-contents)
-## Development Node (Moorea)
+### Network Placement
 
-```yaml
-DEVELOPMENT_NODE:
-  Hostname: Moorea
-
-  Role:
-    - Development
-    - Testing
-    - Temporary Infrastructure
-
-  Hardware:
-    Manufacturer: Dell Wyse
-    Model: 5070
-
-  Status:
-    Current_State: Offline/DEAD
-    Reason: Hardware troubleshooting
-
-  Notes:
-    - Removed from service.
-    - Formerly connected directly to the router.
-```
+KonTiki is on [`VLAN 2 — INFRA`](#vlan-2--infra) because its server and infrastructure functions require controlled access to other infrastructure systems.
 
 ---
 
-[TOC](#table-of-contents)
-## Administration Node (Tahiti)
+## Home Assistant
 
-```yaml
-ADMINISTRATION_NODE:
-  Hostname: Tahiti
+<a name="node-home-assistant"></a>
 
-  Role:
-    - Primary Administration Workstation
+[↩ TOC](#table-of-contents)
 
-  Hardware:
-    Manufacturer: Lenovo
+**Hardware:** Home Assistant Green  
+**Role:** Home automation controller  
+**VLAN:** [`VLAN 2 — INFRA`](#vlan-2--infra)  
+**Switch:** [`Switch 1`](#switch-1--t1500g-10ps), Port 6
 
-  Operating_System:
-    Name: Linux Mint
-    Version: 22
+### Identity
 
-  Network:
-    Wired:
-      VLAN: 1-MGMT
-      IP: 10.1.1.88
-      Usage: Administrative tasks
+| Property | Value |
+|---|---|
+| Hostname | `Home Assistant` |
+| Hardware | Home Assistant Green |
+| VLAN | `2` |
+| Switch Port | Switch 1 / Port 6 |
 
-    Wireless:
-      Primary_SSID: TikiShack
-      VLAN: 22
-      Usage: Normal administration
+### Network Design
 
-  Notes:
-    - Primary management workstation.
-    - Most day-to-day network administration occurs wirelessly from VLAN 22.
-    - Wired management remains available when required.
-    - iPad (Donnie's iPad Pro 12.9" 5th Gen) serves as a second admin node.
-```
+Home Assistant currently resides on [`VLAN 2 — INFRA`](#vlan-2--infra).
+
+A secondary USB Ethernet interface is planned for future connectivity to [`VLAN 66 — IoT`](#vlan-66--iot).
+
+This design allows Home Assistant to function as a controlled bridge between trusted infrastructure and IoT devices without placing the primary Home Assistant host directly into the IoT trust domain.
 
 ---
 
-[TOC](#table-of-contents)
+## Moorea
+
+<a name="node-moorea"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Hardware:** Dell Wyse 5070  
+**Status:** Offline / dead
+
+### Identity
+
+| Property | Value |
+|---|---|
+| Hostname | `Moorea` |
+| Hardware | Dell Wyse 5070 |
+| Status | Offline / dead |
+
+### Future Role
+
+Moorea is retained in the documentation as an infrastructure node because the hardware may eventually be repaired, repurposed, or replaced.
+
+No active network configuration should currently be assigned to it.
+
+---
+
+## Tahiti
+
+<a name="node-tahiti"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Hardware:** Lenovo laptop  
+**Operating System:** Linux Mint 22
+
+### Wired Network
+
+| Property | Value |
+|---|---|
+| Connection | Ethernet |
+| VLAN | [`VLAN 1 — MGMT`](#vlan-1--mgmt) |
+| IP Address | `10.1.1.88` |
+
+### Wireless Network
+
+Tahiti also connects to the [`TikiShack`](#vlan-22--tikishack) wireless network.
+
+| Property | Value |
+|---|---|
+| SSID | `TikiShack` |
+| VLAN | [`VLAN 22 — TikiShack`](#vlan-22--tikishack) |
+
+### Role
+
+Tahiti is a mobile administration and general-purpose Linux workstation.
+
+Its wired management connection provides a predictable administrative path, while its wireless connection allows normal client-network operation.
+
+---
+
 ## Remote Failover Node
 
-```yaml
-REMOTE_FAILOVER_NODE:
-  Status: Planned
+<a name="node-remote-failover"></a>
 
-  Purpose:
-    - Disaster Recovery
-    - Off-site Replication
-    - Remote Infrastructure
+[↩ TOC](#table-of-contents)
 
-  Notes:
-    - Will eventually become an independent PTI node.
-    - Detailed architecture documented separately.
-```
+**Status:** Planned
+
+A remote failover node is planned as part of the long-term resilience architecture.
+
+The exact hardware, location, connectivity, and service set have not yet been finalized.
+
+The intended design is to provide an independent recovery and/or management path should the primary TikiShack infrastructure become unavailable.
 
 ---
 
-[TOC](#table-of-contents)
-# Network Configuration
+# VLANs
 
-This section represents the authoritative operational configuration of the
-production network.
+<a name="vlans"></a>
 
-If the Omada Controller configuration and this document disagree,
-this document is considered the intended configuration and should be
-used when validating or rebuilding the network.
+VLANs are the primary logical segmentation mechanism for the TikiShack/SovrIT network.
 
-[TOC](#table-of-contents)
-## Switch Port Configuration
-
-```yaml
-SWITCH1_PORT_CONFIGURATION:
-
-  Port 1:
-    Name: Gateway Trunk
-    Connected_Device: ER707-M2 Gateway
-
-    Port_Type: Trunk
-
-    Native_VLAN:
-      - MGMT (1)
-
-    Tagged_VLANs:
-      - INFRA (2)
-      - TikiShack.Printer (3)
-      - TikiShack (22)
-      - TikiShack.Panama (23)
-      - TikiShack.Guest (33)
-      - TikiShack.Sentry (44)
-      - TikiShack.Media (55)
-      - TikiShack.IoT (66)
-      - Dev-Sandbox (99)
-
-    Notes:
-      - Primary gateway uplink.
-      - Carries every production VLAN.
-
-  Port 2:
-    Name: OC200 Controller
-    Connected_Device: Omada OC200
-
-    Port_Type: Access
-
-    Native_VLAN:
-      - MGMT (1)
-
-    Tagged_VLANs: []
-
-    Notes:
-      - Dedicated management interface.
-      - No tagged VLANs.
-
-  Port 3:
-    Name: BoraBora
-    Connected_Device: Storage Node
-
-    Port_Type: Access
-
-    Native_VLAN:
-      - INFRA (2)
-
-    Tagged_VLANs: []
-
-    Notes:
-      - Storage server.
-      - Inter-VLAN access is controlled through ACLs.
-
-  Port 4:
-    Name: KonTiki
-    Connected_Device: Local AI Compute Node
-
-    Port_Type: Access
-
-    Native_VLAN:
-      - INFRA (2)
-
-    Tagged_VLANs: []
-
-    Notes:
-      - Reserved pending USB Ethernet adapter.
-      - Intended to remain an Infrastructure host.
-
-  Port 5:
-    Name: Fiji
-    Connected_Device: Core Infrastructure Node
-
-    Port_Type: Access
-
-    Native_VLAN:
-      - INFRA (2)
-
-    Tagged_VLANs: []
-
-    Notes:
-      - Ubuntu Server.
-      - Single network interface.
-
-  Port 6:
-    Name: Home Assistant Green
-    Connected_Device: Home Assistant
-
-    Port_Type: Access
-
-    Native_VLAN:
-      - INFRA (2)
-
-    Tagged_VLANs: []
-
-    Notes:
-      - Future secondary USB NIC will connect to VLAN 66.
-      - Switch port remains an access port.
-
-  Port 7:
-    Name: AP1
-    Connected_Device: TP-Link EAP720
-
-    Port_Type: Trunk
-
-    Native_VLAN:
-      - MGMT (1)
-
-    Tagged_VLANs:
-      - TikiShack.Printer (3)
-      - TikiShack (22)
-      - TikiShack.Panama (23)
-      - TikiShack.Guest (33)
-      - TikiShack.Sentry (44)
-      - TikiShack.Media (55)
-      - TikiShack.IoT (66)
-      - Dev-Sandbox (99)
-
-    Notes:
-      - Carries only VLANs that have wireless SSIDs.
-      - Does NOT carry INFRA (2).
-
-  Port 8:
-    Name: AP2 (Reserved)
-    Connected_Device: Future EAP720
-
-    Port_Type: Trunk
-
-    Native_VLAN:
-      - MGMT (1)
-
-    Tagged_VLANs:
-      - TikiShack.Printer (3)
-      - TikiShack (22)
-      - TikiShack.Panama (23)
-      - TikiShack.Guest (33)
-      - TikiShack.Sentry (44)
-      - TikiShack.Media (55)
-      - TikiShack.IoT (66)
-      - Dev-Sandbox (99)
-
-    Notes:
-      - Reserved for future deployment.
-      - Mirrors Port 7 configuration.
-```
+The design favors explicit segmentation over implicit trust.
 
 ---
 
-[TOC](#table-of-contents)
-## Wireless Networks
+## VLAN 1 — MGMT
 
-```yaml
-WIRELESS_NETWORKS:
+<a name="vlan-1--mgmt"></a>
 
-  TikiShack:
+[↩ TOC](#table-of-contents)
 
-    VLAN: 22
-    Purpose: Primary trusted wireless LAN
+**VLAN ID:** `1`  
+**Name:** `MGMT`  
+**Purpose:** Network management
 
-    Security:
-      Authentication: WPA2/WPA3 Personal
-      Guest_Network: Disabled
+### Role
 
-    Radios:
-      - 2.4 GHz
-      - 5 GHz
+VLAN 1 is the administrative network for network infrastructure and management interfaces.
 
-    Notes:
-      - All client traffic exits through the Boston VPN.
-      - Default wireless network for trusted users.
+Devices currently associated with VLAN 1 include:
 
-  TikiShack.Panama:
+- [`ER707-M2`](#router--gateway--er707-m2)
+- [`T1500G-10PS`](#switch-1--t1500g-10ps)
+- [`TL-SG1024DE`](#switch-2--tl-sg1024de)
+- [`RLA-PS1`](#switch-3--reolink-rla-ps1)
+- [`OC200`](#oc200)
+- [`EAP720-1`](#eap720-1)
+- [`EAP720-2`](#eap720-2)
+- wired [`Tahiti`](#node-tahiti)
 
-    VLAN: 23
-    Purpose: Trusted wireless LAN (Direct Internet)
+### Security Intent
 
-    Security:
-      Authentication: WPA2/WPA3 Personal
-      Guest_Network: Disabled
+Management interfaces should not be exposed to ordinary client networks.
 
-    Radios:
-      - 2.4 GHz
-      - 5 GHz
-
-    Notes:
-      - Traffic bypasses the VPN.
-      - Used when public Internet geolocation is desired.
-
-  TikiShack.Printer:
-
-    VLAN: 3
-    Purpose: Printer access
-
-    Security:
-      Authentication: WPA2/WPA3 Personal
-      Guest_Network: Disabled
-
-    Radios:
-      - 2.4 GHz
-      - 5 GHz
-
-    Notes:
-      - Connected only when printing is required.
-
-  TikiShack.Guest:
-
-    VLAN: 33
-    Purpose: Visitor access
-
-    Security:
-      Authentication: WPA2/WPA3 Personal
-      Guest_Network: Enabled
-
-    Radios:
-      - 2.4 GHz
-      - 5 GHz
-
-    Notes:
-      - Internet-only guest access.
-      - Wireless client isolation enabled.
-
-  TS.Sentry:
-
-    VLAN: 44
-    Purpose: Cameras and security devices
-
-    Security:
-      Authentication: WPA2/WPA3 Personal
-      Guest_Network: Enabled
-
-    Radios:
-      - 2.4 GHz
-      - 5 GHz
-
-    Notes:
-      - Intended for surveillance equipment.
-      - Wireless client isolation enabled.
-
-  TS.Media:
-
-    VLAN: 55
-    Purpose: Entertainment devices
-
-    Security:
-      Authentication: WPA2/WPA3 Personal
-      Guest_Network: Enabled
-
-    Radios:
-      - 2.4 GHz
-      - 5 GHz
-
-    Notes:
-      - Intended for televisions, streaming devices,
-        receivers and similar equipment.
-      - Future AirPlay/mDNS policy will be enforced via ACLs.
-
-  TS.IoT:
-
-    VLAN: 66
-    Purpose: Smart-home devices
-
-    Security:
-      Authentication: WPA2/WPA3 Personal
-      Guest_Network: Disabled
-
-    Radios:
-      - 2.4 GHz
-
-    Notes:
-      - Optimized for IoT hardware.
-      - Home Assistant will eventually have
-        a dedicated interface on this VLAN.
-
-  TS.Sandbox:
-
-    VLAN: 99
-    Purpose: Development and experimentation
-
-    Security:
-      Authentication: WPA2/WPA3 Personal
-      Guest_Network: Disabled
-
-    Radios:
-      - 2.4 GHz
-      - 5 GHz
-
-    Notes:
-      - Intended for temporary development devices.
-      - Client isolation intentionally disabled.
-```
+Access to VLAN 1 should be restricted through explicit firewall policy.
 
 ---
 
-[TOC](#table-of-contents)
-## VLAN Device Inventory
+## VLAN 2 — INFRA
 
-```yaml
-VLAN_DEVICE_INVENTORY:
+<a name="vlan-2--infra"></a>
 
-  VLAN_1:
+[↩ TOC](#table-of-contents)
 
-    Name: MGMT
-    VLAN_ID: 1
+**VLAN ID:** `2`  
+**Name:** `INFRA`  
+**Purpose:** Servers and infrastructure
 
-    Purpose:
-      - Network infrastructure management
+### Role
 
-    Devices:
-      - ER707-M2 Gateway
-      - T1500G Managed Switch
-      - OC200 SDN Controller
-      - EAP720-1
-      - Tahiti (wired administration)
+VLAN 2 contains systems that provide infrastructure services.
 
-    Notes:
-      - Reserved exclusively for management infrastructure.
-      - No wireless SSIDs are assigned to this VLAN.
-      - Will eventually be replaced by a dedicated management VLAN.
-      - VLAN 1 will ultimately become an unused/default VLAN.
+Primary members include:
 
-  VLAN_2:
+- [`BoraBora`](#node-borabora)
+- [`Fiji`](#node-fiji)
+- [`KonTiki`](#node-kontiki)
+- [`Home Assistant`](#node-home-assistant)
 
-    Name: INFRA
-    VLAN_ID: 2
+### Security Intent
 
-    Purpose:
-      - Core PTI infrastructure
+Infrastructure systems are trusted relative to ordinary clients, but trust is not unlimited.
 
-    Devices:
-      - BoraBora
-      - Fiji
-      - Home Assistant Green
-      - KonTiki (planned)
-
-    Notes:
-      - Infrastructure servers only.
-      - No wireless clients.
-      - No wireless SSID.
-      - Devices use access ports only.
-      - Communication from other VLANs is controlled exclusively through Gateway ACLs.
-
-  VLAN_3:
-
-    Name: Printer
-    VLAN_ID: 3
-
-    Purpose:
-      - Network printers
-
-    Devices:
-      - Brother printer(s)
-      - Future network printing devices
-
-    Wireless:
-      SSID: TikiShack.Printer
-
-  VLAN_22:
-
-    Name: TikiShack
-    VLAN_ID: 22
-
-    Purpose:
-      - Trusted user devices
-      - Primary user network
-
-    VPN:
-      Enabled
-      Endpoint: Boston
-
-    Typical_Devices:
-      - Tahiti
-      - iPad
-      - Trusted laptops
-      - Trusted mobile devices
-
-    Wireless:
-      SSID: TikiShack
-
-  VLAN_23:
-
-    Name: Panama
-    VLAN_ID: 23
-
-    Purpose:
-      - Trusted user devices
-      - Direct Internet access
-
-    VPN:
-      Disabled
-
-    Typical_Devices:
-      - Tahiti
-      - iPad
-      - Trusted laptops
-      - Trusted mobile devices
-
-    Wireless:
-      SSID: TikiShack.Panama
-
-    Notes:
-      - Functionally identical to VLAN 22 except that traffic
-        bypasses the VPN.
-
-  VLAN_33:
-
-    Name: Guest
-    VLAN_ID: 33
-
-    Purpose:
-      - Visitor Internet access
-
-    Wireless:
-      SSID: TikiShack.Guest
-
-    Notes:
-      - Internet access only.
-      - No access to trusted internal resources.
-
-  VLAN_44:
-
-    Name: Sentry
-    VLAN_ID: 44
-
-    Purpose:
-      - Cameras
-      - Surveillance
-      - Physical security
-
-    Wireless:
-      SSID: TS.Sentry
-
-    Planned_Devices:
-      - Reolink cameras
-      - Doorbell
-      - Security appliances
-
-  VLAN_55:
-
-    Name: Media
-    VLAN_ID: 55
-
-    Purpose:
-      - Entertainment
-      - Streaming
-      - Audio/Video
-
-    Wireless:
-      SSID: TS.Media
-
-    Planned_Devices:
-      - Televisions
-      - Streaming devices
-      - AV receivers
-      - Media appliances
-
-  VLAN_66:
-
-    Name: IoT
-    VLAN_ID: 66
-
-    Purpose:
-      - Smart-home devices
-
-    Wireless:
-      SSID: TS.IoT
-
-    Planned_Devices:
-      - Smart plugs
-      - Smart switches
-      - Sensors
-      - ESPHome devices
-      - Shelly devices
-      - WLED devices
-
-    Planned_Infrastructure:
-      - Home Assistant secondary interface
-
-  VLAN_99:
-
-    Name: Dev-Sandbox
-    VLAN_ID: 99
-
-    Purpose:
-      - Development
-      - Testing
-      - Temporary experimentation
-
-    Wireless:
-      SSID: TS.Sandbox
-
-    Typical_Devices:
-      - Development laptops
-      - Test hardware
-      - Temporary virtual machines
-```
+Inter-VLAN access should be explicitly authorized according to service requirements.
 
 ---
 
-[TOC](#table-of-contents)
-# Network Design Decisions
+## VLAN 3 — Printer
 
-The following design decisions have been intentionally adopted and represent the
-authoritative architectural direction for the SovrIT PTI network.
+<a name="vlan-3--printer"></a>
 
-## Core Principles
+[↩ TOC](#table-of-contents)
 
-- Strong VLAN segmentation.
-- Least-privilege networking.
-- Zero-trust philosophy.
-- Infrastructure first.
-- Wired-first infrastructure.
-- Explicit routing.
-- Explicit firewall policy.
-- Principle of least privilege.
-- Observation over inference.
-- Security before convenience.
+**VLAN ID:** `3`  
+**Name:** `Printer`  
+**Purpose:** Printers
 
----
+### Security Intent
 
-[TOC](#table-of-contents)
-## Layer 2 Design
+Printers are treated as peripheral devices rather than trusted infrastructure.
 
-### Infrastructure Hosts
+Client access should be permitted only for required printing/discovery protocols.
 
-- Infrastructure hosts use **access ports** unless multiple VLAN interfaces are
-  explicitly required.
-- End hosts are **not trunk ports**.
-- VLAN membership is configured on individual switch ports.
-- Omada Port Profiles are used only for physical port characteristics
-  (PoE, bandwidth, flow control, etc.), **not** VLAN membership.
+Printer-initiated access to infrastructure should be restricted.
 
 ---
 
-[TOC](#table-of-contents)
-### Trunk Ports
+## VLAN 22 — TikiShack
 
-Only links that genuinely transport multiple VLANs are configured as trunks.
+<a name="vlan-22--tikishack"></a>
 
-Current trunk ports:
+[↩ TOC](#table-of-contents)
 
-- Switch Port 1 (Gateway)
-- Switch Port 7 (Primary AP)
-- Switch Port 8 (Reserved AP)
+**VLAN ID:** `22`  
+**Name:** `TikiShack`  
+**Purpose:** Primary trusted wireless client network
 
-No other switch ports currently require trunking.
+### Role
+
+TikiShack is the primary trusted wireless network for normal household/client devices.
+
+### VPN
+
+The TikiShack network is associated with the Boston VPN path where configured.
+
+### Security Intent
+
+This is a trusted client network, but it is still distinct from the infrastructure network.
+
+Clients should access infrastructure services through explicit firewall policy.
 
 ---
 
-[TOC](#table-of-contents)
+## VLAN 23 — Panama
+
+<a name="vlan-23--panama"></a>
+
+[↩ TOC](#table-of-contents)
+
+**VLAN ID:** `23`  
+**Name:** `Panama`  
+**Purpose:** Direct-WAN wireless client network
+
+### Role
+
+Panama provides a wireless client path that bypasses the normal Boston VPN route and uses the direct WAN connection.
+
+### Security Intent
+
+Panama is a separate logical network so that VPN routing policy can be selected at the network boundary rather than individually on every client.
+
+---
+
+## VLAN 33 — Guest
+
+<a name="vlan-33--guest"></a>
+
+[↩ TOC](#table-of-contents)
+
+**VLAN ID:** `33`  
+**Name:** `Guest`  
+**Purpose:** Guest access
+
+### Security Intent
+
+Guest devices are untrusted.
+
+The guest network should have Internet access while being denied access to internal infrastructure and household networks except where explicitly required.
+
+---
+
+## VLAN 44 — Sentry
+
+<a name="vlan-44--sentry"></a>
+
+[↩ TOC](#table-of-contents)
+
+**VLAN ID:** `44`  
+**Name:** `Sentry`  
+**Purpose:** Security and observation infrastructure
+
+### Role
+
+Sentry is intended for security-oriented devices such as cameras and related observation infrastructure.
+
+### Security Intent
+
+Sentry devices should have limited access to infrastructure.
+
+Where practical, the preferred direction of trust is:
+
+**Infrastructure → Sentry**
+
+rather than:
+
+**Sentry → Infrastructure**
+
+This limits the consequences of a compromised security device.
+
+---
+
+## VLAN 55 — Media
+
+<a name="vlan-55--media"></a>
+
+[↩ TOC](#table-of-contents)
+
+**VLAN ID:** `55`  
+**Name:** `Media`  
+**Purpose:** Media devices and services
+
+### Role
+
+Media devices and services are logically separated from general infrastructure.
+
+[`BoraBora`](#node-borabora) may provide storage to systems on this VLAN where explicitly permitted.
+
+### Security Intent
+
+Media clients should not receive unrestricted access to management or infrastructure services.
+
+---
+
+## VLAN 66 — IoT
+
+<a name="vlan-66--iot"></a>
+
+[↩ TOC](#table-of-contents)
+
+**VLAN ID:** `66`  
+**Name:** `IoT`  
+**Purpose:** Internet-of-Things devices
+
+### Role
+
+VLAN 66 provides an isolated network for IoT devices.
+
+### Security Intent
+
+IoT devices are inherently less trusted than general-purpose computers and servers.
+
+The network therefore uses segmentation to limit their ability to initiate connections into:
+
+- management;
+- infrastructure;
+- household clients;
+- development systems.
+
+[`Home Assistant`](#node-home-assistant) is intended to provide controlled access to IoT devices.
+
+---
+
+## VLAN 99 — Dev-Sandbox
+
+<a name="vlan-99--dev-sandbox"></a>
+
+[↩ TOC](#table-of-contents)
+
+**VLAN ID:** `99`  
+**Name:** `Dev-Sandbox`  
+**Purpose:** Development and experimentation
+
+### Role
+
+VLAN 99 is intended for development, testing, experimentation, and systems that should not be treated as production infrastructure.
+
+### Security Intent
+
+Development systems should be assumed to have a higher probability of configuration changes, experimental software, and temporary services.
+
+They should therefore be isolated from production infrastructure except where explicit access is required.
+
+---
+
+# Wireless Networks
+
+<a name="wireless-networks"></a>
+
+Wireless networks map SSIDs to VLANs and, where applicable, to different WAN routing policies.
+
+---
+
+## TikiShack
+
+<a name="ssid-tikishack"></a>
+
+[↩ TOC](#table-of-contents)
+
+**SSID:** `TikiShack`  
+**VLAN:** [`VLAN 22`](#vlan-22--tikishack)  
+**WAN Path:** Boston VPN
+
+### Purpose
+
+Primary trusted wireless network.
+
+This is the normal wireless network for household/client devices that should use the VPN egress.
+
+---
+
+## Panama
+
+<a name="ssid-panama"></a>
+
+[↩ TOC](#table-of-contents)
+
+**SSID:** `Panama`  
+**VLAN:** [`VLAN 23`](#vlan-23--panama)  
+**WAN Path:** Direct WAN
+
+### Purpose
+
+Provides wireless clients with direct Internet access through the local WAN rather than the Boston VPN.
+
+---
+
+## Guest
+
+<a name="ssid-guest"></a>
+
+[↩ TOC](#table-of-contents)
+
+**SSID:** `Guest`  
+**VLAN:** [`VLAN 33`](#vlan-33--guest)  
+**WAN Path:** Direct WAN
+
+### Purpose
+
+Guest access.
+
+Guests should have Internet access without access to internal infrastructure.
+
+---
+
+## Sentry
+
+<a name="ssid-sentry"></a>
+
+[↩ TOC](#table-of-contents)
+
+**SSID:** `Sentry`  
+**VLAN:** [`VLAN 44`](#vlan-44--sentry)
+
+### Purpose
+
+Wireless security/observation devices where required.
+
+---
+
+## Media
+
+<a name="ssid-media"></a>
+
+[↩ TOC](#table-of-contents)
+
+**SSID:** `Media`  
+**VLAN:** [`VLAN 55`](#vlan-55--media)
+
+### Purpose
+
+Wireless media devices.
+
+---
+
+## IoT
+
+<a name="ssid-iot"></a>
+
+[↩ TOC](#table-of-contents)
+
+**SSID:** `IoT`  
+**VLAN:** [`VLAN 66`](#vlan-66--iot)
+
+### Purpose
+
+Wireless IoT devices.
+
+---
+
+## Dev-Sandbox
+
+<a name="ssid-dev-sandbox"></a>
+
+[↩ TOC](#table-of-contents)
+
+**SSID:** `Dev-Sandbox`  
+**VLAN:** [`VLAN 99`](#vlan-99--dev-sandbox)
+
+### Purpose
+
+Wireless development and testing.
+
+---
+
+# Physical Connectivity
+
+<a name="physical-connectivity"></a>
+
+The physical network is deliberately documented separately from the logical architecture.
+
+Physical topology answers:
+
+> What is physically connected to what?
+
+Logical topology answers:
+
+> What network does that connection carry?
+
+Keeping those concepts separate makes the configuration easier to maintain.
+
+---
+
+## Primary Gateway Connection
+
+<a name="physical-gateway"></a>
+
+[`ER707-M2`](#router--gateway--er707-m2) connects to [`Switch 1`](#switch-1--t1500g-10ps), Port 1.
+
+### Port 1
+
+**Mode:** Trunk
+
+**Native / Untagged VLAN:** [`VLAN 1 — MGMT`](#vlan-1--mgmt)
+
+**Tagged VLANs:**
+
+- [`VLAN 2 — INFRA`](#vlan-2--infra)
+- [`VLAN 3 — Printer`](#vlan-3--printer)
+- [`VLAN 22 — TikiShack`](#vlan-22--tikishack)
+- [`VLAN 23 — Panama`](#vlan-23--panama)
+- [`VLAN 33 — Guest`](#vlan-33--guest)
+- [`VLAN 44 — Sentry`](#vlan-44--sentry)
+- [`VLAN 55 — Media`](#vlan-55--media)
+- [`VLAN 66 — IoT`](#vlan-66--iot)
+- [`VLAN 99 — Dev-Sandbox`](#vlan-99--dev-sandbox)
+
+---
+
+## Switch 1 — Port 2
+
+<a name="physical-switch1-port2"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Connected Device:** [`OC200`](#oc200)
+
+**Mode:** Access
+
+**Untagged VLAN:** [`VLAN 1 — MGMT`](#vlan-1--mgmt)
+
+The Omada controller is therefore directly attached to the management network.
+
+---
+
+## Switch 1 — Port 3
+
+<a name="physical-switch1-port3"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Connected Device:** [`BoraBora`](#node-borabora)
+
+**Mode:** Access
+
+**Untagged VLAN:** [`VLAN 2 — INFRA`](#vlan-2--infra)
+
+---
+
+## Switch 1 — Port 4
+
+<a name="physical-switch1-port4"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Connected Device:** [`KonTiki`](#node-kontiki)
+
+**Mode:** Access
+
+**Untagged VLAN:** [`VLAN 2 — INFRA`](#vlan-2--infra)
+
+---
+
+## Switch 1 — Port 5
+
+<a name="physical-switch1-port5"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Connected Device:** [`Fiji`](#node-fiji)
+
+**Mode:** Access
+
+**Untagged VLAN:** [`VLAN 2 — INFRA`](#vlan-2--infra)
+
+---
+
+## Switch 1 — Port 6
+
+<a name="physical-switch1-port6"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Connected Device:** [`Home Assistant`](#node-home-assistant)
+
+**Mode:** Access
+
+**Untagged VLAN:** [`VLAN 2 — INFRA`](#vlan-2--infra)
+
+A future secondary USB Ethernet interface is intended to provide Home Assistant connectivity to [`VLAN 66 — IoT`](#vlan-66--iot).
+
+---
+
+## Switch 1 — Port 7
+
+<a name="physical-switch1-port7"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Connected Device:** [`EAP720-1`](#eap720-1)
+
+**Mode:** Trunk
+
+**Native / Untagged VLAN:** [`VLAN 1 — MGMT`](#vlan-1--mgmt)
+
+**Tagged VLANs:** Wireless client VLANs.
+
+The access point carries management traffic untagged while client traffic is VLAN-tagged.
+
+---
+
+## Switch 1 — Port 8
+
+<a name="physical-switch1-port8"></a>
+
+[↩ TOC](#table-of-contents)
+
+**Connected Device:** [`EAP720-2`](#eap720-2)
+
+**Status:** Reserved
+
+**Mode:** Trunk
+
+**Native / Untagged VLAN:** [`VLAN 1 — MGMT`](#vlan-1--mgmt)
+
+**Tagged VLANs:** Wireless client VLANs.
+
+---
+
+## Access Point Connectivity
+
+<a name="physical-ap-connectivity"></a>
+
+Both EAP720 access points are designed to use the same fundamental VLAN model:
+
+- management traffic on [`VLAN 1`](#vlan-1--mgmt);
+- wireless client traffic tagged according to the SSID's VLAN;
+- no requirement for wireless clients to share the management VLAN.
+
+This keeps wireless infrastructure and wireless clients logically separated.
+
+---
+
+# Logical Network Architecture
+
+<a name="logical-network-architecture"></a>
+
+The logical architecture defines how the physical network is divided into security and service domains.
+
+The fundamental design principles are:
+
+- strong VLAN segmentation;
+- least privilege;
+- explicit routing and firewall policy;
+- infrastructure-first design;
+- wired-first infrastructure;
+- observation over inference;
+- security before convenience.
+
+---
+
+## Layer 2 Architecture
+
+<a name="layer-2-architecture"></a>
+
+The switching infrastructure provides Layer-2 VLAN transport.
+
+The primary VLAN trunk is:
+
+[`ER707-M2`](#router--gateway--er707-m2) → [`Switch 1`](#switch-1--t1500g-10ps)
+
+From Switch 1, VLANs are presented to:
+
+- infrastructure access ports;
+- management devices;
+- wireless access points;
+- additional switches.
+
 ### Access Ports
 
-Current Infrastructure access ports:
+Access ports carry a single untagged VLAN.
 
-- Port 2 — OC200
-- Port 3 — BoraBora
-- Port 4 — KonTiki
-- Port 5 — Fiji
-- Port 6 — Home Assistant
+Current examples:
 
-Each carries exactly one production VLAN.
+| Port | Device | VLAN |
+|---:|---|---:|
+| 2 | [`OC200`](#oc200) | [`1`](#vlan-1--mgmt) |
+| 3 | [`BoraBora`](#node-borabora) | [`2`](#vlan-2--infra) |
+| 4 | [`KonTiki`](#node-kontiki) | [`2`](#vlan-2--infra) |
+| 5 | [`Fiji`](#node-fiji) | [`2`](#vlan-2--infra) |
+| 6 | [`Home Assistant`](#node-home-assistant) | [`2`](#vlan-2--infra) |
+
+### Trunk Ports
+
+Trunk ports carry multiple VLANs.
+
+Current examples:
+
+| Port | Device | Native VLAN | Tagged VLANs |
+|---:|---|---:|---|
+| 1 | [`ER707-M2`](#router--gateway--er707-m2) | `1` | `2,3,22,23,33,44,55,66,99` |
+| 7 | [`EAP720-1`](#eap720-1) | `1` | Wireless VLANs |
+| 8 | [`EAP720-2`](#eap720-2) | `1` | Wireless VLANs |
 
 ---
 
-[TOC](#table-of-contents)
+## Access Port Design
+
+<a name="access-port-design"></a>
+
+Access ports should be explicitly assigned to the VLAN appropriate for the attached device.
+
+A device should not be placed on a VLAN merely because that VLAN happens to provide connectivity.
+
+The VLAN should represent the device's intended trust and service domain.
+
+Examples:
+
+- network infrastructure → [`VLAN 1`](#vlan-1--mgmt);
+- servers → [`VLAN 2`](#vlan-2--infra);
+- printers → [`VLAN 3`](#vlan-3--printer);
+- trusted wireless clients → [`VLAN 22`](#vlan-22--tikishack);
+- direct-WAN wireless clients → [`VLAN 23`](#vlan-23--panama);
+- guests → [`VLAN 33`](#vlan-33--guest);
+- security devices → [`VLAN 44`](#vlan-44--sentry);
+- media devices → [`VLAN 55`](#vlan-55--media);
+- IoT → [`VLAN 66`](#vlan-66--iot);
+- development → [`VLAN 99`](#vlan-99--dev-sandbox).
+
+---
+
+## Trunk Port Design
+
+<a name="trunk-port-design"></a>
+
+Trunks should explicitly define:
+
+1. native / untagged VLAN;
+2. permitted tagged VLANs;
+3. connected device;
+4. intended purpose.
+
+Avoid broad "allow all VLANs" trunk configurations where the connected device does not actually require them.
+
+This makes the physical configuration itself an enforcement mechanism and reduces accidental exposure.
+
+---
+
 ## Access Point Design
 
-Wireless access points carry only VLANs that actually have wireless SSIDs.
+<a name="ap-design"></a>
 
-Specifically:
+Access points are treated as infrastructure devices rather than as ordinary wireless clients.
 
-- Management VLAN remains native.
-- Infrastructure VLAN is **not** carried.
-- Additional VLANs are added only when an SSID requires them.
+Their management interface belongs on [`VLAN 1 — MGMT`](#vlan-1--mgmt).
 
-This follows the design principle:
+Client SSIDs map directly to VLANs:
 
-> A VLAN should exist on a link only when there is a legitimate operational
-> reason for traffic on that VLAN to traverse that link.
+| SSID | VLAN | Purpose |
+|---|---:|---|
+| [`TikiShack`](#ssid-tikishack) | `22` | Trusted clients |
+| [`Panama`](#ssid-panama) | `23` | Direct-WAN clients |
+| [`Guest`](#ssid-guest) | `33` | Guest clients |
+| [`Sentry`](#ssid-sentry) | `44` | Security devices |
+| [`Media`](#ssid-media) | `55` | Media devices |
+| [`IoT`](#ssid-iot) | `66` | IoT devices |
+| [`Dev-Sandbox`](#ssid-dev-sandbox) | `99` | Development |
+
+This provides a clean mapping:
+
+**SSID → VLAN → security policy → WAN policy**
 
 ---
 
-[TOC](#table-of-contents)
+## Layer 3 / Gateway Architecture
+
+<a name="layer-3-gateway"></a>
+
+The [`ER707-M2`](#router--gateway--er707-m2) is the primary Layer-3 gateway.
+
+Inter-VLAN traffic should pass through the router where firewall policy can be applied.
+
+The design therefore avoids relying on Layer-2 proximity as an indicator of trust.
+
+### Routing Domains
+
+The principal routing domains are:
+
+- management;
+- infrastructure;
+- peripherals;
+- trusted clients;
+- direct-WAN clients;
+- guests;
+- security/observation;
+- media;
+- IoT;
+- development.
+
+### Firewall Philosophy
+
+Firewall rules should follow least privilege.
+
+The default question should be:
+
+> Does this traffic need to exist?
+
+rather than:
+
+> How can we make this traffic work?
+
+Where a service requires access across VLAN boundaries, the required source, destination, protocol, and port should be explicitly documented.
+
+---
+
 ## Infrastructure Philosophy
 
-Infrastructure systems are intentionally separated from user networks.
+<a name="infrastructure-philosophy"></a>
 
-Infrastructure hosts are expected to provide services to other VLANs through
-routed connections rather than by directly participating in multiple VLANs.
+Infrastructure is the foundation of the network.
 
-Examples include:
+The architecture therefore gives special consideration to:
 
-- BoraBora
-- Fiji
-- KonTiki
-- Home Assistant
+- storage;
+- DNS;
+- authentication;
+- certificate infrastructure;
+- monitoring;
+- backup;
+- network management;
+- automation;
+- AI compute;
+- service orchestration.
 
-Infrastructure remains physically wired whenever possible.
+Infrastructure systems are centralized where that improves reliability and observability, but critical dependencies should not create unnecessary single points of failure.
+
+[`BoraBora`](#node-borabora), [`Fiji`](#node-fiji), and [`KonTiki`](#node-kontiki) form the current core infrastructure compute/storage group.
 
 ---
 
-[TOC](#table-of-contents)
 ## Wireless Philosophy
 
-Wireless exists for clients.
+<a name="wireless-philosophy"></a>
 
-Infrastructure does not use Wi-Fi.
+Wireless networks are treated as logical access domains rather than simply different names for the same network.
 
-Every SSID maps to exactly one VLAN.
+Different SSIDs can therefore represent different:
 
-Every wireless client receives network access appropriate only to the role of
-that SSID.
+- trust levels;
+- VLANs;
+- firewall policies;
+- WAN paths;
+- device classes.
 
-Wireless is never used as a shortcut around VLAN segmentation.
+The network should avoid requiring per-device configuration merely to select an Internet egress policy.
+
+Instead:
+
+**SSID → VLAN → routing policy**
+
+is the preferred abstraction.
 
 ---
 
-[TOC](#table-of-contents)
 ## Security Architecture
 
-The PTI network is designed around a layered security model. VLANs provide
-administrative and broadcast-domain separation, while Gateway ACLs enforce
-explicit communication policy between security domains.
+<a name="security-architecture"></a>
+
+The security architecture follows a layered model.
+
+### Segmentation
+
+VLANs establish coarse security boundaries.
+
+### Firewall
+
+The gateway establishes explicit Layer-3 policy.
+
+### Identity
+
+Authentication systems should eventually provide centralized identity and strong authentication.
+
+### Certificates
+
+A private PKI can provide internal TLS certificates and machine identity.
+
+### Monitoring
+
+Monitoring should observe the network rather than infer security solely from configuration.
+
+### Detection
+
+Security tooling can identify anomalous behavior and enforce additional controls.
+
+### Zero Trust
+
+Network location alone should not be considered sufficient authorization.
+
+A device being on [`VLAN 2`](#vlan-2--infra), for example, does not automatically mean that it should be able to access every service on every other infrastructure device.
 
 ---
 
-[TOC](#table-of-contents)
-### Layer 2
+## Network Management
 
-Responsibilities:
+<a name="network-management"></a>
 
-- Physical connectivity
-- VLAN separation
-- Broadcast containment
-- Access vs. trunk enforcement
+Network infrastructure is centralized under the Omada management plane where supported.
 
-Layer 2 is **not** relied upon for authorization decisions.
+[`OC200`](#oc200) provides the Omada controller function.
 
----
+Management devices reside on [`VLAN 1 — MGMT`](#vlan-1--mgmt).
 
-[TOC](#table-of-contents)
-### Layer 3
-
-The ER707-M2 is the authoritative policy enforcement point.
-
-Responsibilities include:
-
-- Inter-VLAN routing
-- Gateway ACL enforcement
-- Internet access
-- VPN routing
-- Future QoS
-
-Inter-VLAN communication is denied unless explicitly permitted.
+Administrative access should be restricted to trusted management paths.
 
 ---
 
-[TOC](#table-of-contents)
-### Infrastructure
+## Internet Connectivity
 
-Infrastructure systems are treated as service providers rather than trusted peers.
+<a name="internet-connectivity"></a>
 
-Services are exposed intentionally.
+The primary Internet gateway is [`ER707-M2`](#router--gateway--er707-m2).
 
-Infrastructure hosts do not automatically trust one another simply because they
-reside on the same VLAN.
+The network is designed to support multiple WAN paths.
 
-Future Gateway ACLs may further restrict east-west communication within
-Infrastructure where operationally appropriate.
+### Primary WAN
 
----
+The normal WAN path is provided by the primary Internet connection attached to the ER707-M2.
 
-[TOC](#table-of-contents)
-### Management
+### Secondary / Cellular WAN
 
-Administrative access is intentionally limited.
+[`W1850-5GB`](#router-2--w1850-5gb) is intended to provide a secondary cellular/failover path.
 
-Current administration devices:
-
-- Tahiti
-- iPad
-
-Normal administration occurs over the trusted TikiShack wireless network
-(VLAN 22).
-
-Temporary wired administration remains available through VLAN 1 when required.
-
-A dedicated Management VLAN will eventually replace VLAN 1.
+Its actual network configuration remains subject to physical verification.
 
 ---
 
-[TOC](#table-of-contents)
-### Internet Access
+## VPN Architecture
 
-Every VLAN receives Internet access only as required by its purpose.
+<a name="vpn-architecture"></a>
 
-Future Gateway ACLs will further restrict Internet access where practical.
+The network supports routing selected client networks through a remote VPN endpoint.
 
-Examples:
+The principal current use case is the Boston VPN path associated with [`VLAN 22 — TikiShack`](#vlan-22--tikishack).
 
-- Cameras should communicate only with required cloud services (if any).
-- Infrastructure should not require unrestricted outbound access.
-- Guest devices receive Internet access only.
-- Sandbox remains intentionally flexible.
+This approach allows VPN policy to be attached to a network rather than to individual clients.
 
----
+### Direct-WAN Exception
 
-[TOC](#table-of-contents)
-### VPN Philosophy
+[`VLAN 23 — Panama`](#vlan-23--panama) provides a direct-WAN alternative.
 
-Two trusted client VLANs exist.
-
-#### VLAN 22 — TikiShack
-
-Purpose:
-
-- Daily-use trusted devices.
-
-Characteristics:
-
-- Permanent VPN connection.
-- Public Internet appears to originate from Boston.
-- Default trusted wireless network.
+This is useful for services that require local geographic egress or otherwise behave poorly through the VPN.
 
 ---
 
-[TOC](#table-of-contents)
-#### VLAN 23 — Panama
+## Service Discovery
 
-Purpose:
+<a name="service-discovery"></a>
 
-- Trusted devices requiring direct Internet access.
+Service discovery should be deliberately controlled across VLAN boundaries.
 
-Characteristics:
+mDNS, multicast, broadcast discovery, and similar mechanisms should not be allowed to cross segmentation boundaries indiscriminately.
 
-- No VPN.
-- Native WAN routing.
-- Used when geographic location should reflect the actual Internet connection.
-
-The two VLANs are otherwise functionally equivalent.
+Where cross-VLAN discovery is necessary, the architecture should provide an explicit reflector or proxy rather than weakening segmentation globally.
 
 ---
 
-[TOC](#table-of-contents)
-### Service Discovery
+## Home Assistant Architecture
 
-Discovery protocols are intentionally treated as privileged services.
+<a name="home-assistant-architecture"></a>
 
-Examples include:
+[`Home Assistant`](#node-home-assistant) is currently attached to [`VLAN 2 — INFRA`](#vlan-2--infra).
 
-- mDNS
-- Bonjour
-- SSDP
-- Matter
-- Thread Border Router discovery
+A future secondary Ethernet interface is intended to connect it to [`VLAN 66 — IoT`](#vlan-66--iot).
 
-These services will not be permitted between VLANs unless explicitly required.
+This creates a deliberate architectural separation:
 
-Future mDNS reflection will be implemented only where operationally justified.
+**Home Assistant infrastructure interface**
 
----
+→ trusted infrastructure
 
-[TOC](#table-of-contents)
-### Home Assistant
+**Home Assistant IoT interface**
 
-Home Assistant occupies a unique architectural role.
+→ IoT devices
 
-Rather than acting as a network bridge, it functions as an application-layer
-orchestrator between trusted infrastructure and IoT devices.
-
-Planned architecture:
-
-Primary interface:
-
-- Infrastructure VLAN (2)
-
-Purpose:
-
-- Administration
-- Backups
-- Updates
-- Infrastructure services
-
-Secondary interface:
-
-- IoT VLAN (66)
-
-Purpose:
-
-- Native IoT communication
-- ESPHome
-- Matter
-- Device discovery
-- Local automation
-
-This design minimizes firewall exceptions while maintaining strong VLAN
-segmentation.
+The objective is to permit Home Assistant to manage IoT devices without requiring every infrastructure host to have equivalent access to the IoT network.
 
 ---
 
-[TOC](#table-of-contents)
-### Artificial Intelligence Platform
+## AI Platform
 
-KonTiki is designed as a permanent infrastructure appliance.
+<a name="ai-platform"></a>
 
-Purpose:
+[`KonTiki`](#node-kontiki) is the primary local AI compute platform.
 
-- Local LLM inference
-- AI APIs
-- Future SovrIT Assistant backend
+It is located on [`VLAN 2 — INFRA`](#vlan-2--infra).
 
-KonTiki is **not** intended to function as a personal workstation.
+The AI environment is intentionally treated as infrastructure rather than as an ordinary workstation because local models and AI services may interact with:
 
-Current design assumes:
+- network services;
+- storage;
+- development environments;
+- automation;
+- source repositories;
+- other infrastructure systems.
 
-- Single Infrastructure interface
-- Access-port configuration
-- Client access governed through Gateway ACLs
-
-No multiple VLAN interfaces are currently anticipated.
+AI workloads should therefore be subject to the same segmentation and access-control principles as other infrastructure workloads.
 
 ---
 
-[TOC](#table-of-contents)
-### Storage Philosophy
+## Storage Philosophy
 
-BoraBora functions as centralized storage for the PTI.
+<a name="storage-philosophy"></a>
 
-Responsibilities include:
+[`BoraBora`](#node-borabora) is the primary storage platform.
 
-- Media storage
-- Infrastructure storage
-- Backup repository
-- Migration support
+Storage should be treated as infrastructure and protected accordingly.
 
-BoraBora remains an Infrastructure host.
+Access should be granted according to service requirements rather than simply because a client can reach the storage VLAN.
 
-Other VLANs consume storage services through routed connections rather than by
-placing the storage server directly on multiple VLANs.
+Important storage considerations include:
+
+- backups;
+- snapshots;
+- replication;
+- media;
+- application data;
+- configuration backups;
+- disaster recovery.
 
 ---
 
-[TOC](#table-of-contents)
 # Future Architecture
 
-The following items are planned but not yet implemented.
+<a name="future-architecture"></a>
+
+Future architecture should extend the existing segmentation and infrastructure principles rather than introduce unrelated parallel systems.
 
 ---
 
-[TOC](#table-of-contents)
-## ACL Policy
+## Firewall / ACL Expansion
 
-Status:
+<a name="future-firewall"></a>
 
-- Planned
+The next major logical-network phase is to formalize inter-VLAN firewall policy.
 
-Design goals:
+The intended model is:
 
-- Default deny between VLANs.
-- Explicit allow rules.
-- Least privilege.
-- Minimize lateral movement.
-- Document every exception.
+1. deny unnecessary cross-VLAN traffic;
+2. explicitly permit required services;
+3. document every exception;
+4. periodically review exceptions.
 
----
+A rule should ideally answer:
 
-[TOC](#table-of-contents)
-## Firewall Rules
-
-Status:
-
-- Planned
-
-Firewall policy will be derived directly from documented communication
-requirements rather than convenience.
+- source;
+- destination;
+- protocol;
+- port;
+- purpose;
+- justification.
 
 ---
 
-[TOC](#table-of-contents)
 ## IPv6
 
-Status:
+<a name="future-ipv6"></a>
 
-- Deferred
+IPv6 is intentionally deferred until the IPv4/VLAN architecture is stable.
 
-IPv6 deployment will occur only after the IPv4 architecture is considered
-complete and stable.
+When implemented, IPv6 should receive equivalent segmentation and firewall treatment rather than being allowed to bypass the IPv4 security architecture.
 
 ---
 
-[TOC](#table-of-contents)
 ## High Availability
 
-Status:
+<a name="future-ha"></a>
 
-- Planned
+High availability is a future objective rather than a current capability.
 
-Future work includes:
+Potential areas include:
 
-- Remote Failover Node
-- Replication
-- Automated recovery
-- Disaster recovery procedures
+- gateway redundancy;
+- DNS redundancy;
+- storage redundancy;
+- service redundancy;
+- remote recovery;
+- alternate Internet connectivity.
+
+HA should be introduced where it materially improves resilience rather than simply adding complexity.
 
 ---
 
-[TOC](#table-of-contents)
 ## Additional Infrastructure
 
-Planned future services include, but are not limited to:
+<a name="future-infrastructure"></a>
 
-- Step-CA
-- CrowdSec
-- NetBird
-- AdGuard Home
-- Unbound
-- Reverse Proxy
-- Centralized authentication
-- Monitoring
-- Logging
-- Certificate management
+Additional infrastructure systems may eventually include:
+
+- centralized authentication;
+- WebAuthn;
+- password management;
+- internal PKI;
+- NTP;
+- DNS filtering;
+- monitoring;
+- alerting;
+- intrusion detection;
+- backup orchestration;
+- automation;
+- source control;
+- service orchestration.
+
+These systems should remain subordinate to the fundamental network architecture.
 
 ---
 
-[TOC](#table-of-contents)
+## Remote Resilience
+
+<a name="future-remote-resilience"></a>
+
+A remote infrastructure/failover node is planned.
+
+The purpose is to ensure that a failure at TikiShack does not simultaneously eliminate every recovery mechanism.
+
+The remote node should ideally provide some combination of:
+
+- secure remote access;
+- configuration backup;
+- DNS;
+- authentication;
+- monitoring;
+- VPN endpoint;
+- disaster-recovery orchestration.
+
+---
+
 # Network Design Status
 
-| Area | Status | Notes |
-|:-----|:------:|:------|
-| Physical Infrastructure | ✅ Complete | Router, switch, controller, and primary AP operational. |
-| VLAN Architecture | ✅ Complete | Production VLAN design finalized. |
-| IP Addressing | ✅ Complete | Static infrastructure addresses and DHCP reservations established. |
-| Switch Port Configuration | ✅ Complete | All production ports configured and documented. |
-| Wireless SSIDs | ✅ Complete | Every SSID mapped to a dedicated VLAN. |
-| Access Point Trunking | ✅ Complete | Only wireless VLANs transported; INFRA intentionally excluded. |
-| Infrastructure Topology | ✅ Complete | Wired-first architecture established. |
-| Layer 2 Design | ✅ Complete | Considered stable. |
-| Gateway Routing | ✅ Complete | Inter-VLAN routing operational. |
-| ACL Policy | ⏳ Planned | Next implementation phase. |
-| Firewall Rules | ⏳ Planned | Derived from documented communication requirements. |
-| mDNS / Bonjour Policy | ⏳ Planned | To be implemented selectively where required. |
-| VPN Policy | ⏳ Planned | Fine-grained routing policy to follow ACL implementation. |
-| Home Assistant Integration | ⏳ In Progress | Initial deployment on INFRA. Dual-homed design planned. |
-| IoT Deployment | ⏳ In Progress | Devices will be migrated following ACL implementation. |
-| AI Platform | ⏳ In Progress | KonTiki deployment pending wired Ethernet adapter. |
-| Remote Failover | 📋 Planned | Future RFN deployment. |
-| High Availability | 📋 Planned | Replication and disaster recovery. |
-| IPv6 | 📋 Deferred | To be implemented after IPv4 architecture stabilizes. |
+<a name="network-design-status"></a>
+
+The network is operational but remains under active development.
 
 ---
 
-[TOC](#table-of-contents)
+## Operational
+
+The following elements are considered operational components of the current design:
+
+- TP-Link Omada management;
+- primary gateway;
+- managed switching;
+- VLAN segmentation;
+- infrastructure VLAN;
+- management VLAN;
+- primary wireless network;
+- direct-WAN wireless network;
+- guest network;
+- infrastructure hosts;
+- primary storage;
+- local AI compute.
+
+---
+
+## In Development
+
+The following areas remain under active development:
+
+- comprehensive firewall/ACL policy;
+- IoT segmentation;
+- Sentry/security segmentation;
+- media segmentation;
+- development sandbox;
+- Home Assistant dual-interface architecture;
+- cellular WAN failover;
+- remote failover infrastructure;
+- centralized security monitoring;
+- service-level authentication;
+- internal PKI;
+- broader automation.
+
+---
+
+## Deferred
+
+The following items are deliberately deferred:
+
+- IPv6;
+- full high availability;
+- complete remote-site architecture;
+- additional access points where not yet needed;
+- unnecessary hardware expansion.
+
+---
+
 # Guiding Principles
 
-The following principles govern all future modifications to the TikiShack network.
+<a name="guiding-principles"></a>
 
-[TOC](#table-of-contents)
-## Simplicity
+The TikiShack/SovrIT network follows these principles.
 
-Prefer the simplest architecture that satisfies the operational requirements.
+## 1. Infrastructure First
 
-Complexity must always be justified.
+Build the network foundation before layering applications and convenience services on top of it.
 
----
+## 2. Explicit Over Implicit
 
-[TOC](#table-of-contents)
-## Determinism
+Configuration should explicitly state what is permitted.
 
-Network behavior should be predictable.
+Avoid relying on undocumented defaults.
 
-Routing, firewall policy, VLAN membership, and infrastructure responsibilities
-should never depend on undocumented behavior or assumptions.
+## 3. Least Privilege
 
----
+A device should receive only the access it needs.
 
-[TOC](#table-of-contents)
-## Least Privilege
+## 4. Segmentation
 
-Every communication path must be explicitly justified.
+Different trust domains should have different network boundaries.
 
-Access is granted only when operationally necessary.
+## 5. Wired First
 
----
+Core infrastructure should use wired connectivity whenever practical.
 
-[TOC](#table-of-contents)
-## Separation of Responsibilities
+Wireless is primarily an access mechanism for clients and mobile devices.
 
-Each infrastructure component has a clearly defined responsibility.
+## 6. Observation Over Inference
 
-Examples include:
+The network should collect sufficient information to determine what is actually happening.
 
-- Gateway
-    - Routing
-    - Firewall
-    - VPN
+Do not rely solely on assumptions based on configuration.
 
-- Switch
-    - Layer-2 forwarding
-    - VLAN transport
-    - PoE
+## 7. Security Before Convenience
 
-- Access Points
-    - Wireless access
-    - Client association
-    - SSID-to-VLAN mapping
+Convenience should not silently weaken network boundaries.
 
-- Infrastructure Nodes
-    - Application services
+If a convenience feature requires reduced security, the tradeoff should be explicit.
 
-Responsibilities should not overlap unnecessarily.
+## 8. Document the Why
 
----
+Configuration documentation should explain not only what a device or VLAN does, but why it exists.
 
-[TOC](#table-of-contents)
-## Wired-First Infrastructure
+This makes future changes safer.
 
-Infrastructure services should use wired Ethernet whenever practical.
+## 9. Make the Network Self-Describing
 
-Wireless networking exists primarily for client devices.
+Device names, VLAN names, port descriptions, and documentation should reinforce one another.
+
+A person should be able to move from:
+
+**device → port → VLAN → gateway → policy**
+
+without reconstructing the topology from unrelated documents.
+
+## 10. Design for AI Readability
+
+Network documentation should use consistent names, explicit relationships, stable anchors, and semantic structure.
+
+Avoid encoding important relationships solely in visual formatting.
 
 ---
 
-[TOC](#table-of-contents)
-## Explicit Over Implicit
-
-Configuration should always be explicit.
-
-Examples:
-
-- Explicit VLAN membership
-- Explicit ACL rules
-- Explicit routing
-- Explicit documentation
-
-Automatic or implicit behavior should not be relied upon where an explicit
-configuration is available.
-
----
-
-[TOC](#table-of-contents)
-## Documentation First
-
-The documentation is the authoritative design specification.
-
-Configuration changes should be reflected in this document as soon as reasonably
-practical.
-
-Whenever practical:
-
-1. Update documentation.
-2. Commit documentation to Git.
-3. Export the Omada configuration.
-4. Apply the network change.
-
-This ensures the documented architecture and operational network remain aligned.
-
----
-
-[TOC](#table-of-contents)
-## Change Management
-
-Major architectural changes should:
-
-- be documented,
-- be committed to version control,
-- include an Omada configuration backup,
-- and be reversible.
-
----
-
-[TOC](#table-of-contents)
-## Current Baseline
-
-This document represents the **Layer-2 baseline** for the SovrIT PTI network.
-
-Future work will build upon this baseline through:
-
-- Gateway ACL implementation
-- Firewall policy
-- Service discovery policy
-- Home Assistant integration
-- IoT deployment
-- AI platform deployment
-- Remote failover implementation
-
-Layer-2 topology should be considered stable unless a future architectural
-decision explicitly requires modification.
-
----
-
-[TOC](#table-of-contents)
 # Revision History
 
-| Version | Date | Description |
-|:--------|:-----|:------------|
-| 0.x | Initial development | Early network planning and hardware inventory. |
-| 1.0 | Current | Layer-2 architecture completed; documented production baseline established prior to ACL implementation. |
+<a name="revision-history"></a>
+
+| Date | Revision | Description |
+|---|---|---|
+| 2026-09-28 | 2.0 | Refactored from YAML-heavy configuration into semantic Markdown |
+| 2026-09-28 | 2.0 | Added canonical entity anchors and internal cross-links |
+| 2026-09-28 | 2.0 | Added manufacturer/model links |
+| 2026-09-28 | 2.0 | Separated physical, logical, VLAN, wireless, and infrastructure documentation |
+| 2026-09-28 | 2.0 | Added Network Entity Index and VLAN Index |
+| 2026-09-28 | 2.0 | Flagged W1850-5GB identity/configuration inconsistency for verification |
 
 ---
 
-# End of Document
+**End of Document**

@@ -15,6 +15,7 @@
 
 - [Network Management Devices](#network-management-devices)
   - [Router / Gateway](#router--gateway)
+  - [Router 2 (5G Backup WAN)](#router2-5g-backup-wan)
   - [Switch 1](#switch-1)
   - [Switch 2](#switch-2)
   - [Switch 3](#switch-3)
@@ -49,6 +50,41 @@ All network infrastructure devices reside on the Management VLAN unless otherwis
 
 [TOC](#table-of-contents)
 ## Router / Gateway
+
+```yaml
+ROUTER_GATEWAY:
+  Make: TP-Link
+  Model: ER707-M2
+  Revision: v1.3
+  FirmwareVersion: 1.4.2 Build 20260509 Rel.32107
+
+  Description: >
+    Primary gateway, firewall, DHCP server,
+    VLAN router and VPN endpoint.
+
+  Network:
+    VLAN: 1-MGMT
+    IP: 10.1.1.1
+    IP_Assignment: Static
+    MAC_ID: AC-A7-F1-D6-57-A6
+    Connection: 802.3 (Ethernet)
+    Cable_Color: White (Flat)
+    SSID: N/A
+
+  PortMap:
+    Port 1 (WAN): ISP modem/router
+    Port 2 (WAN/LAN): UNUSED
+    Port 3 (WAN/LAN): UNUSED
+    Port 4 (WAN/LAN): Moorea (Development/Test Node)
+    Port 5 (WAN/LAN): Tahiti (Administration Laptop)
+    Port 6 (WAN/LAN): Switch 1
+    Port 7 (WAN/LAN): UNUSED
+```
+
+---
+
+[TOC](#table-of-contents)
+## Router 2 (5G Backup WAN)
 
 ```yaml
 ROUTER_GATEWAY:

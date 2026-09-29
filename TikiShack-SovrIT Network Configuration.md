@@ -25,11 +25,11 @@
   - [Storage Node (BoraBora)](#storage-node-borabora)
   - [Core Node (Fiji)](#core-node-fiji)
   - [Compute Node (KonTiki)](#compute-node-kontiki)
-  - [Home Assistant Green](#home-assistant-green)
+  - [Orchestration Node](#orchestration-node-homeassistant)
   - [Development Node (Moorea)](#development-node-moorea)
   - [Administration Node (Tahiti)](#administration-node-tahiti)
   - [Remote Failover Node](#remote-failover-node)
-- [Network Configuration (Source of Truth)](#network-configuration-source-of-truth)
+- [Network Configuration](#network-configuration)
   - [Switch Port Configuration](#switch-port-configuration)
   - [Wireless Networks](#wireless-networks)
   - [VLAN Device Inventory](#vlan-device-inventory)
@@ -38,8 +38,8 @@
 
 ---
 
-# Network Management Devices
 [TOC](#table-of-contents)
+# Network Management Devices
 
 > **Management VLAN:** VLAN 1 (MGMT)
 
@@ -47,8 +47,8 @@ All network infrastructure devices reside on the Management VLAN unless otherwis
 
 ---
 
-## Router / Gateway
 [TOC](#table-of-contents)
+## Router / Gateway
 
 ```yaml
 ROUTER_GATEWAY:
@@ -82,8 +82,8 @@ ROUTER_GATEWAY:
 
 ---
 
-## Switch 1
 [TOC](#table-of-contents)
+## Switch 1
 
 ```yaml
 SWITCH1:
@@ -118,8 +118,8 @@ SWITCH1:
 
 ---
 
-## Switch 2
 [TOC](#table-of-contents)
+## Switch 2
 
 ```yaml
 SWITCH2:
@@ -137,8 +137,8 @@ SWITCH2:
 
 ---
 
-## Switch 3
 [TOC](#table-of-contents)
+## Switch 3
 
 ```yaml
 SWITCH3:
@@ -158,8 +158,8 @@ SWITCH3:
 
 ---
 
-## Omada SDN Controller
 [TOC](#table-of-contents)
+## Omada SDN Controller
 
 ```yaml
 SDN_CONTROLLER:
@@ -186,8 +186,8 @@ SDN_CONTROLLER:
 
 ---
 
-## Wireless Access Point 1
 [TOC](#table-of-contents)
+## Wireless Access Point 1
 
 ```yaml
 WAP1:
@@ -212,8 +212,8 @@ WAP1:
 
 ---
 
-## Wireless Access Point 2
 [TOC](#table-of-contents)
+## Wireless Access Point 2
 
 ```yaml
 WAP2:
@@ -230,15 +230,16 @@ WAP2:
 
 ---
 
-# Infrastructure Nodes
 [TOC](#table-of-contents)
+# Infrastructure Nodes
 
 > **Infrastructure VLAN:** VLAN 2 (INFRA)
 
 All infrastructure systems are connected via wired Ethernet and operate as
 access-port devices on VLAN 2 unless explicitly documented otherwise.
 
-## Storage Node (BoraBora) [TOC](#table-of-contents)
+## Storage Node (BoraBora)
+[TOC](#table-of-contents)
 
 ```yaml
 STORAGE_NODE:
@@ -287,6 +288,7 @@ STORAGE_NODE:
 
 ---
 
+[TOC](#table-of-contents)
 ## Core Node (Fiji)
 
 ```yaml
@@ -335,6 +337,7 @@ CORE_NODE:
 
 ---
 
+[TOC](#table-of-contents)
 ## Compute Node (KonTiki)
 
 ```yaml
@@ -389,10 +392,11 @@ COMPUTE_NODE:
 
 ---
 
-## Home Assistant Green
+[TOC](#table-of-contents)
+## Orchestration Node (HomeAssistant)
 
 ```yaml
-HOME_ASSISTANT:
+ORCHESTRATION_NODE:
   Hostname: HomeAssistant
 
   Role:
@@ -428,6 +432,7 @@ HOME_ASSISTANT:
 
 ---
 
+[TOC](#table-of-contents)
 ## Development Node (Moorea)
 
 ```yaml
@@ -454,6 +459,7 @@ DEVELOPMENT_NODE:
 
 ---
 
+[TOC](#table-of-contents)
 ## Administration Node (Tahiti)
 
 ```yaml
@@ -485,10 +491,12 @@ ADMINISTRATION_NODE:
     - Primary management workstation.
     - Most day-to-day network administration occurs wirelessly from VLAN 22.
     - Wired management remains available when required.
+    - iPad (Donnie's iPad Pro 12.9" 5th Gen) serves as a second admin node.
 ```
 
 ---
 
+[TOC](#table-of-contents)
 ## Remote Failover Node
 
 ```yaml
@@ -507,7 +515,8 @@ REMOTE_FAILOVER_NODE:
 
 ---
 
-# Network Configuration (Source of Truth)
+[TOC](#table-of-contents)
+# Network Configuration
 
 This section represents the authoritative operational configuration of the
 production network.
@@ -516,6 +525,7 @@ If the Omada Controller configuration and this document disagree,
 this document is considered the intended configuration and should be
 used when validating or rebuilding the network.
 
+[TOC](#table-of-contents)
 ## Switch Port Configuration
 
 ```yaml

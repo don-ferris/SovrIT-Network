@@ -1,13 +1,8 @@
 # TikiShack-SovrIT Network Configuration
-
-> **Project:** SovrIT PTI (Personal/Private Technology Infrastructure)
->
-> This document is the authoritative technical specification for the TikiShack/SovrIT network.
-> It documents the physical infrastructure, logical network topology, infrastructure
-> nodes, wireless configuration, and operational design decisions.
->
-> This document is intended to serve as the primary source of truth for rebuilding,
-> maintaining, troubleshooting, securing, and extending the network.
+ 
+> This document is the authoritative technical specification for the TikiShack/SovrIT network.  
+> It documents the physical infrastructure, logical network topology, infrastructure nodes, wireless configuration, and operational design decisions.  
+> This document is intended to serve as the primary source of truth for rebuilding, maintaining, troubleshooting, securing, and extending the network.
 
 ---
 
